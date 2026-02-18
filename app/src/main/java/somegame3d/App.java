@@ -757,7 +757,13 @@ class InteractionController {
  * @version 1.0.2 Beta
  */
 class InvalidPurchaseException extends RuntimeException {
-    public InvalidPurchaseException(String m) {
-        super(m);
+    /**
+     * Creates A New {@code InvalidPurchaseException}. These Tell If The Player Has Sufficient Amount To Buy Something.
+     * @author IDEKAnymoreTBH On Github
+     * @param m The Message. It Is Of Type Object, Meaning Anything Can Go There And Still Be Valid.
+     * @see InvalidPurchaseException
+     */
+    public InvalidPurchaseException(Object m) {
+        super(m.toString());
     }
 }
