@@ -21,9 +21,9 @@ import com.jme3.scene.shape.Box;
 import com.jme3.shadow.EdgeFilteringMode;
 import com.jme3.shadow.SpotLightShadowRenderer;
 import com.jme3.system.AppSettings;
+import com.jme3.texture.Texture;
 import com.jme3.ui.Picture;
 import com.simsilica.lemur.GuiGlobals;
-import groovy.console.ui.Console;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState;
 import com.jme3.material.RenderState.FaceCullMode;
@@ -94,6 +94,7 @@ public class App extends SimpleApplication implements ActionListener {
     Picture shop1Gui = new Picture("Shop1GUI");
     Picture cursor;
     Picture pauseMenu = new Picture("Pause_Menu");
+    RoomGenerator gen;
     //The Screen, Specifically Designed For ToneGodGUI
     public Geometry targetGeometry;
     private Screen screen;
@@ -215,8 +216,9 @@ public class App extends SimpleApplication implements ActionListener {
         ssao.setBias(0.1f);
         viewPort.addProcessor(fpp);
         //Floor
-        RoomGenerator gen = new RoomGenerator(assetManager, rootNode, bulletAppState);
+        gen = new RoomGenerator(assetManager, rootNode, bulletAppState);
         gen.generateStarterRoom();
+        gen.generateTestBlock(-10, 5, 0, 2, 2, 2);
         //Player(Not Gonna Have A Model Until Needed)
         playerSpatial = new Geometry("Box", new Box(0, 0, 0));
         Material playerMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
@@ -258,7 +260,8 @@ public class App extends SimpleApplication implements ActionListener {
         inputManager.addMapping("Set_FlyHack", new KeyTrigger(KeyInput.KEY_SEMICOLON));
         inputManager.addMapping("Interact", new KeyTrigger(KeyInput.KEY_E));
         inputManager.addMapping("Pause", new KeyTrigger(KeyInput.KEY_RETURN));
-        inputManager.addListener(this, "MoveForward", "Jump", "ToggleFPS", "MoveBackwards", "StrafeLeft", "StrafeRight", "Sprint", "SnapshotCoords", "Crouch", "Set_FlyHack", "Interact", "Pause");
+        inputManager.addMapping("Toggle_Flashlight", new KeyTrigger(KeyInput.KEY_RSHIFT));
+        inputManager.addListener(this, "MoveForward", "Jump", "ToggleFPS", "MoveBackwards", "StrafeLeft", "StrafeRight", "Sprint", "SnapshotCoords", "Crouch", "Set_FlyHack", "Interact", "Pause", "Toggle_Flashlight");
         //(Test) Object To Test Interactables
         targetGeometry = new Geometry("Test_Interactable", new Box(0.1f, 0.5f, 0.4f));
         targetGeometry.setLocalTranslation(9, 4, 5);
@@ -333,9 +336,13 @@ public class App extends SimpleApplication implements ActionListener {
                 guiNode.attachChild(interactGui);
                 intCont.updateValue("Shop1.obj", true);
 
+            } else if((results.getClosestCollision().getGeometry() == gen.blockGeom) && (cam.getLocation().distanceSquared(results.getClosestCollision().getGeometry().getWorldTranslation()) <= 25)) {
+                guiNode.attachChild(interactGui);
+                intCont.updateValue("Block.test", true);
             } else {
                 guiNode.detachChildNamed("Interact_Gui");
                 intCont.updateValue("Shop1.obj", false);
+                intCont.updateValue("Block.test", false);
             }
         }
         float accel = playerControl.isOnGround() ? 6f : 1.5f;
@@ -515,7 +522,7 @@ public class App extends SimpleApplication implements ActionListener {
             //Also will test cursor positioning
             inputManager.setMouseCursor(null);
         } else if (name.equals("Interact") && isPressed) {
-            if (intCont.interactionMap.get("Shop1.obj")) {
+            if (intCont.getValue("Shop1.obj")) {
                 if(!isInteractingWithShop1) {
                     flyCam.setEnabled(false);
                     inputManager.setCursorVisible(true);
@@ -529,7 +536,11 @@ public class App extends SimpleApplication implements ActionListener {
                     isInteractingWithShop1 = false;
                     canMove = true;
                 }
+            } else if(intCont.getValue("Block.test")) {
+                System.out.println("Block Clicked");
             }
+        } else if(name.equals("Toggle_Flashlight") && isPressed) {
+            flashlight.setEnabled(!flashlight.isEnabled());
         }
         
         /*else if (name.equals("Play_Sound")) {
@@ -554,6 +565,7 @@ class RoomGenerator{
     public ArrayList<Geometry> roomNodeList;
     public static Geometry floorGeom3;
     public static RigidBodyControl floorPhysics3;
+    public Geometry blockGeom;
     /**
      * Creates A RoomGenerator To Spawn Stuff
      * @param assetManager Main App AssetManager, To Attach Things Correctly
@@ -611,7 +623,7 @@ class RoomGenerator{
         floorMat.setColor("Diffuse", ColorRGBA.Gray);
         wallMat.setColor("Diffuse", ColorRGBA.Gray);
         //Textures The Materials
-        wallMat.setTexture("DiffuseMap", assetManager.loadTexture("WallTexture.png"));
+        wallMat.setTexture("DiffuseMap", this.assetManager.loadTexture("WallTexture.png"));
         //Attaches The Material To It's Geometry
         floorGeom.setMaterial(floorMat);
         floorGeom2.setMaterial(floorMat);
@@ -652,6 +664,33 @@ class RoomGenerator{
         this.bulletAppState.getPhysicsSpace().add(floorPhysics5);
         this.bulletAppState.getPhysicsSpace().add(starterWallPhysics);
         this.bulletAppState.getPhysicsSpace().add(starterWall2Physics);
+    }
+    /**
+     * Creates A Test Block For Right Now. IDEK.
+     * @param x The X To Place It
+     * @param y The Y To Place It
+     * @param z The Z To Place It
+     * @param width The Total Width Of The Block
+     * @param height The Total Height Of The Block
+     * @param depth The Total Depth/Length Of The Block
+     * @author IDEKAnymoreTBH on Github
+     */
+    public void generateTestBlock(int x, int y, int z, int width, int height, int depth) {
+        blockGeom = new Geometry("BlockTest", new Box(width/2, height/2, depth/2));
+        blockGeom.setLocalTranslation(x, y, z);
+        Material blockMat = new Material(this.assetManager, "Common/MatDefs/Light/Lighting.j3md");
+        blockGeom.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
+        blockMat.setBoolean("UseMaterialColors", true);
+        blockMat.setColor("Diffuse", ColorRGBA.Gray);
+        Texture tex = this.assetManager.loadTexture("BlockTexture.png");
+        tex.setMagFilter(Texture.MagFilter.Nearest);
+        tex.setMinFilter(Texture.MinFilter.Trilinear);
+        blockMat.setTexture("DiffuseMap", tex);
+        blockGeom.setMaterial(blockMat);
+        this.rootNode.attachChild(blockGeom);
+        RigidBodyControl blockPhysics = new RigidBodyControl(new BoxCollisionShape(new Vector3f(width/2, height/2, depth/2)), 0f);
+        blockGeom.addControl(blockPhysics);
+        this.bulletAppState.getPhysicsSpace().add(blockPhysics);
     }
 }
 /**
@@ -732,10 +771,11 @@ class CharacterObj {
  * @author IDEKAnymoreTBH On Github
  */
 class InteractionController {
-    public Map<String, Boolean> interactionMap;
+    private Map<String, Boolean> interactionMap;
     public InteractionController() {
         interactionMap = new HashMap<>();
         interactionMap.put("Shop1.obj", false);
+        interactionMap.put("Block.test", false);
         System.out.println("Your Choice Of Interactions: ".concat(Arrays.toString(interactionMap.keySet().toArray())));
     }
     /**
@@ -747,6 +787,9 @@ class InteractionController {
      */
     public void updateValue(String name, boolean newVal) {
         interactionMap.put(name, newVal);
+    }
+    public boolean getValue(String name) {
+        return interactionMap.get(name);
     }
 }
 /**
