@@ -82,7 +82,6 @@ public class App extends SimpleApplication implements ActionListener {
     public int developedProducts = 0;
     //All GUI Elements(Menus, UI, Etc)
     Picture mainMenu;
-    Picture patchNotesGUI;
     Picture settingsGUI;
     Picture keybindsGUI;
     Picture optionsGUI;
@@ -286,7 +285,7 @@ public class App extends SimpleApplication implements ActionListener {
         cursor.setPosition(inputManager.getCursorPosition().x - 5, inputManager.getCursorPosition().y - 40);
         cursor.setLocalTranslation(cursor.getLocalTranslation().x, cursor.getLocalTranslation().y, 10);
         //Makes The Game Not Run Until The Menus Are Done
-        if(isInMainMenu || isInSettings || isInPatchNotes || isInSettingsKeyBinds || isInSettingsOptions || isInSettingsDebugOptions) return;
+        if(isInMainMenu || isInSettings || isInSettingsKeyBinds || isInSettingsOptions || isInSettingsDebugOptions) return;
         flashlight.setPosition(cam.getLocation());
         flashlight.setDirection(cam.getDirection().normalize());
         guiNode.attachChild(staminaBar);
@@ -381,7 +380,7 @@ public class App extends SimpleApplication implements ActionListener {
     }
     @Override
     public void onAction(String name, boolean isPressed, float tpf) {
-        if (name.equals("MoveForward") && !isInMainMenu && !isInSettings && !isInPatchNotes && !isInSettingsKeyBinds && !isInSettingsOptions && !isInSettingsDebugOptions && canMove) {
+        if (name.equals("MoveForward") && !isInMainMenu && !isInSettings && !isInSettingsKeyBinds && !isInSettingsOptions && !isInSettingsDebugOptions && canMove) {
             moveForward = isPressed;
         } else if (name.equals("Jump") && isPressed) {
             if(canMove) {
@@ -396,7 +395,7 @@ public class App extends SimpleApplication implements ActionListener {
                     throw new InvalidPurchaseException("Purchase Cannot Be Made. Insufficient Funds");
                 }
             }
-        } else if (name.equals("ToggleFPS") && !isInMainMenu && !isInSettings && !isInPatchNotes && !isInSettingsKeyBinds && !isInSettingsOptions && !isInSettingsDebugOptions) {
+        } else if (name.equals("ToggleFPS") && !isInMainMenu && !isInSettings && !isInSettingsKeyBinds && !isInSettingsOptions && !isInSettingsDebugOptions) {
             if(!fpsShown) {
                 fpsShown = true;
                 setDisplayFps(fpsShown);
@@ -405,13 +404,13 @@ public class App extends SimpleApplication implements ActionListener {
                 fpsShown = false;
                 setDisplayFps(fpsShown);
             }
-        } else if (name.equals("MoveBackwards") && !isInMainMenu && !isInSettings && !isInPatchNotes && !isInSettingsKeyBinds && !isInSettingsOptions && !isInSettingsDebugOptions && canMove) {
+        } else if (name.equals("MoveBackwards") && !isInMainMenu && !isInSettings && !isInSettingsKeyBinds && !isInSettingsOptions && !isInSettingsDebugOptions && canMove) {
             moveBackwards = isPressed;
-        } else if (name.equals("StrafeLeft") && !isInMainMenu && !isInSettings && !isInPatchNotes && !isInSettingsKeyBinds && !isInSettingsOptions && !isInSettingsDebugOptions && canMove) {
+        } else if (name.equals("StrafeLeft") && !isInMainMenu && !isInSettings && !isInSettingsKeyBinds && !isInSettingsOptions && !isInSettingsDebugOptions && canMove) {
             strafeLeft = isPressed;
-        } else if (name.equals("StrafeRight") && !isInMainMenu && !isInSettings && !isInPatchNotes && !isInSettingsKeyBinds && !isInSettingsOptions && !isInSettingsDebugOptions && canMove) {
+        } else if (name.equals("StrafeRight") && !isInMainMenu && !isInSettings && !isInSettingsKeyBinds && !isInSettingsOptions && !isInSettingsDebugOptions && canMove) {
             strafeRight = isPressed;
-        } else if (name.equals("Sprint") && !isInMainMenu && !isInSettings && !isInPatchNotes && !isInSettingsKeyBinds && !isInSettingsOptions && !isInSettingsDebugOptions) {
+        } else if (name.equals("Sprint") && !isInMainMenu && !isInSettings && !isInSettingsKeyBinds && !isInSettingsOptions && !isInSettingsDebugOptions) {
             walkDirMult = (isPressed && stamina > 0) ? 10f : 4f;
         } else if (name.equals("Click") && isPressed) {
             if(inputManager.getCursorPosition().x >= 777.0f && inputManager.getCursorPosition().x <= 1142.0f && inputManager.getCursorPosition().y <= 901.0f && inputManager.getCursorPosition().y >= 782.0f && isInMainMenu) {
@@ -431,23 +430,11 @@ public class App extends SimpleApplication implements ActionListener {
                 settingsGUI.setPosition(0, 0);
                 guiNode.attachChild(settingsGUI);
             }
-            if(inputManager.getCursorPosition().x >= 777.0f && inputManager.getCursorPosition().x <= 1142.0f && inputManager.getCursorPosition().y <= 422.0f && inputManager.getCursorPosition().y >= 298.0f && isInMainMenu) {
-                isInMainMenu = false;
-                isInPatchNotes = true;
-                guiNode.detachChildNamed("Main_Menu");
-                patchNotesGUI = new Picture("Patch_Notes");
-                patchNotesGUI.setImage(assetManager, "Patch_Notes.png", true);
-                patchNotesGUI.setWidth(settings.getWidth());
-                patchNotesGUI.setHeight(settings.getHeight());
-                patchNotesGUI.setPosition(0, 0);
-                guiNode.attachChild(patchNotesGUI);
-            }
             if(inputManager.getCursorPosition().x >= 777.0f && inputManager.getCursorPosition().x <= 1142.0f && inputManager.getCursorPosition().y <= 187.0f && inputManager.getCursorPosition().y >= 68.0f && isInMainMenu) {
                 System.exit(0);
             }
-            if(inputManager.getCursorPosition().x >= 1820.0f && inputManager.getCursorPosition().x <= 1903.0f && inputManager.getCursorPosition().y <= 1183.0f && inputManager.getCursorPosition().y >= 1101.0f && (isInSettings || isInPatchNotes)) {
+            if(inputManager.getCursorPosition().x >= 1820.0f && inputManager.getCursorPosition().x <= 1903.0f && inputManager.getCursorPosition().y <= 1183.0f && inputManager.getCursorPosition().y >= 1101.0f && isInSettings) {
                 isInSettings = false;
-                isInPatchNotes = false;
                 isInMainMenu = true;
                 guiNode.attachChild(mainMenu);
             }
