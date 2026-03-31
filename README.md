@@ -1,4 +1,28 @@
 # SomeGame3D
+## Summary:
 A Random Game That I May Or May Not Finish
 
 So, This Game I Made. Not That Impressive. I May Finish It If I Want To. If You Want To Try It, Just Put The Whole Folder In Your IDE And Do `./gradlew build` And `./gradlew run`. This Game May Be Updated, But IDK For Now I Am Burnt Out. Make Some Commit And Pull Requests If You Want.
+
+## Patch Notes:
+- v0.0.1 Beta:
+    - Implemented An Early Map
+    - Made Basic Controls
+    - Redesigned Everything, Since I Am Not Making SM64 Anymore
+- v0.0.2 Beta:
+    - Scrapped ToneGod TextFields Because They Are Broken
+    - Fixed Game-Kept Patch Notes
+    - Added Stamina
+- v0.1.0:
+    - Wow First Ever Actually Slightly Playable Thing
+    - Have Moving Platform For No Reason
+    - Flashlight I May Or May Not Remove
+    - Added Like 13 Keybinds To The Game
+    - Oh BTW It Isn't A Rouge-Like Anymore :)
+    - Tons Of Really Shoddy But Sometimes Cool Shadows Rendered
+- v0.1.1:
+    - Removed Game Patch Notes Tab Because I Have These
+    - Also Got Rid Of The PNG For Them (DW All They Had Was v0.0.1 And v0.0.2)
+    - No More Code Related To Them
+    - I'm Also Realizing That These Version Nums Are Not Actually Realistic. v0.1.0 Was Probably Kept Short, And Could've Had 13 Versions
+    - Came Back From Burnout, And Might Continue After I Finish Some Other Projects That I Need To Complete
