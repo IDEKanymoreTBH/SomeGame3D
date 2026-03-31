@@ -10,6 +10,8 @@ import com.jme3.app.SimpleApplication;
 import com.jme3.asset.AssetManager;
 import com.jme3.audio.AudioData.DataType;
 import com.jme3.audio.AudioNode;
+import com.jme3.bounding.BoundingBox;
+import com.jme3.bounding.BoundingVolume;
 import com.jme3.light.DirectionalLight;
 import com.jme3.light.SpotLight;
 import com.jme3.scene.Geometry;
@@ -40,6 +42,7 @@ import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.collision.shapes.BoxCollisionShape;
 import com.jme3.bullet.control.BetterCharacterControl;
 import com.jme3.bullet.control.RigidBodyControl;
+import com.jme3.collision.CollisionResult;
 import com.jme3.collision.CollisionResults;
 import tonegod.gui.core.Screen;
 import com.jme3.scene.control.BillboardControl;
@@ -333,17 +336,21 @@ public class App extends SimpleApplication implements ActionListener {
         rootNode.collideWith(ray, results);
         if(results.size() > 0) {
             if((results.getClosestCollision().getGeometry() == targetGeometry) && (cam.getLocation().distanceSquared(results.getClosestCollision().getGeometry().getWorldTranslation()) <= 25)) {
-                guiNode.attachChild(interactGui);
-                intCont.updateValue("Shop1.obj", true);
+                    guiNode.attachChild(interactGui);
+                    intCont.updateValue("Shop1.obj", true);
 
             } else if((results.getClosestCollision().getGeometry() == gen.blockGeom) && (cam.getLocation().distanceSquared(results.getClosestCollision().getGeometry().getWorldTranslation()) <= 25)) {
-                guiNode.attachChild(interactGui);
-                intCont.updateValue("Block.test", true);
-            } else {
-                guiNode.detachChildNamed("Interact_Gui");
-                intCont.updateValue("Shop1.obj", false);
-                intCont.updateValue("Block.test", false);
+                    guiNode.attachChild(interactGui);
+                    intCont.updateValue("Block.test", true);
+                } else {
+                    guiNode.detachChildNamed("Interact_Gui");
+                    intCont.updateValue("Shop1.obj", false);
+                    intCont.updateValue("Block.test", false);
             }
+        } else {
+            guiNode.detachChildNamed("Interact_Gui");
+            intCont.updateValue("Shop1.obj", false);
+            intCont.updateValue("Block.test", false);
         }
         float accel = playerControl.isOnGround() ? 6f : 1.5f;
         float friction = playerControl.isOnGround() ? 4f : 0f;
@@ -678,6 +685,8 @@ class RoomGenerator{
     public void generateTestBlock(int x, int y, int z, int width, int height, int depth) {
         blockGeom = new Geometry("BlockTest", new Box(width/2, height/2, depth/2));
         blockGeom.setLocalTranslation(x, y, z);
+        blockGeom.updateModelBound();
+        blockGeom.updateGeometricState();
         Material blockMat = new Material(this.assetManager, "Common/MatDefs/Light/Lighting.j3md");
         blockGeom.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
         blockMat.setBoolean("UseMaterialColors", true);
