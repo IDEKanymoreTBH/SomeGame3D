@@ -34,3 +34,4 @@ So, This Game I Made. Not That Impressive. I May Finish It If I Want To. If You 
 - v0.1.3:
     - Fixed Texture Paths For All Asset Users
     - Added Some More Documentation
+    - Changed Skybox Color
