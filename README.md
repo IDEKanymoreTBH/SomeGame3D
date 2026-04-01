@@ -26,3 +26,11 @@ So, This Game I Made. Not That Impressive. I May Finish It If I Want To. If You 
     - No More Code Related To Them
     - I'm Also Realizing That These Version Nums Are Not Actually Realistic. v0.1.0 Was Probably Kept Short, And Could've Had 13 Versions
     - Came Back From Burnout, And Might Continue After I Finish Some Other Projects That I Need To Complete
+- v0.1.2:
+    - NVM I Can Do More
+    - Added Some Methods Related To Blocks
+    - Changed The File Structure Slightly
+    - Started Working On World Gen With Region Files
+- v0.1.3:
+    - Fixed Texture Paths For All Asset Users
+    - Added Some More Documentation
