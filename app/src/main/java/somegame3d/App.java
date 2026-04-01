@@ -131,7 +131,7 @@ public class App extends SimpleApplication implements ActionListener {
         cursor = new Picture("CursorTex");
         cursor.setWidth(32);
         cursor.setHeight(46);
-        cursor.setImage(assetManager, "CursorTexture.png", true);
+        cursor.setImage(assetManager, "Textures/CursorTexture.png", true);
         cursor.setPosition(50, 50);
         cursor.setQueueBucket(RenderQueue.Bucket.Gui);
         cursor.setCullHint(Spatial.CullHint.Never);
@@ -157,30 +157,30 @@ public class App extends SimpleApplication implements ActionListener {
         devText.setColor(ColorRGBA.Black);
         guiNode.attachChild(devText);
         mainMenu = new Picture("Main_Menu");
-        mainMenu.setImage(assetManager, "MainMenu.png", true);
+        mainMenu.setImage(assetManager, "Textures/MainMenu.png", true);
         mainMenu.setWidth(settings.getWidth());
         mainMenu.setHeight(settings.getHeight());
         mainMenu.setPosition(0, 0);
         guiNode.attachChild(mainMenu);
-        shop1Gui.setImage(assetManager, "Keypad.png", true);
+        shop1Gui.setImage(assetManager, "Textures/Keypad.png", true);
         shop1Gui.setWidth(750);
         shop1Gui.setHeight(881);
         shop1Gui.setPosition(0, 0);
-        staminaBar.setImage(assetManager, "StaminaBar.png", true);
+        staminaBar.setImage(assetManager, "Textures/StaminaBar.png", true);
         staminaBar.setWidth(1009);
         staminaBar.setHeight(791.015625f);
         staminaBar.setPosition(0, 410);
         guiNode.attachChild(staminaBar);
-        devBar.setImage(assetManager, "Developed.png", true);
+        devBar.setImage(assetManager, "Textures/Developed.png", true);
         devBar.setWidth(1009);
         devBar.setHeight(791.015625f);
         devBar.setPosition(0, 0);
         guiNode.attachChild(devBar);
-        interactGui.setImage(assetManager, "InteractGUI.png", true);
+        interactGui.setImage(assetManager, "Textures/InteractGUI.png", true);
         interactGui.setWidth(2000);
         interactGui.setHeight(1000);
         interactGui.setPosition(0, 0);
-        pauseMenu.setImage(assetManager, "PauseMenu.png", true);
+        pauseMenu.setImage(assetManager, "Textures/PauseMenu.png", true);
         pauseMenu.setWidth(settings.getWidth());
         pauseMenu.setHeight(settings.getHeight());
         pauseMenu.setPosition(0, 0);
@@ -196,7 +196,7 @@ public class App extends SimpleApplication implements ActionListener {
         stateManager.attach(bulletAppState);
         //Lighting
         flashlight = new SpotLight();
-        
+        viewPort.setBackgroundColor(ColorRGBA.fromRGBA255(117, 244, 255, 255));
         flashlight.setColor(ColorRGBA.White.mult(2f)); // brightness
         flashlight.setPosition(cam.getLocation());
         flashlight.setDirection(cam.getDirection());
@@ -422,7 +422,7 @@ public class App extends SimpleApplication implements ActionListener {
                 isInMainMenu = false;
                 guiNode.detachChildNamed("Main_Menu");
                 settingsGUI = new Picture("Settings_Menu"); //AppSettings already is named settings :/
-                settingsGUI.setImage(assetManager, "Settings.png", true);
+                settingsGUI.setImage(assetManager, "Textures/Settings.png", true);
                 settingsGUI.setWidth(settings.getWidth());
                 settingsGUI.setHeight(settings.getHeight());
                 settingsGUI.setPosition(0, 0);
@@ -449,7 +449,7 @@ public class App extends SimpleApplication implements ActionListener {
                 isInSettingsOptions = true;
                 guiNode.detachChildNamed("Settings_Menu");
                 optionsGUI = new Picture("Options_Menu");
-                optionsGUI.setImage(assetManager, "Options.png", true);
+                optionsGUI.setImage(assetManager, "Textures/Options.png", true);
                 optionsGUI.setWidth(settings.getWidth());
                 optionsGUI.setHeight(settings.getHeight());
                 optionsGUI.setPosition(0, 0);
@@ -460,7 +460,7 @@ public class App extends SimpleApplication implements ActionListener {
                 isInSettingsKeyBinds = true;
                 guiNode.detachChildNamed("Settings_Menu");
                 keybindsGUI = new Picture("Keybind_Menu");
-                keybindsGUI.setImage(assetManager, "Keybinds.png", true);
+                keybindsGUI.setImage(assetManager, "Textures/Keybinds.png", true);
                 keybindsGUI.setWidth(settings.getWidth());
                 keybindsGUI.setHeight(settings.getHeight());
                 keybindsGUI.setPosition(0, 0);
@@ -471,7 +471,7 @@ public class App extends SimpleApplication implements ActionListener {
                 isInSettingsDebugOptions = true;
                 guiNode.detachChildNamed("Settings_Menu");
                 debugOptionsGUI = new Picture("Debug_Menu");
-                debugOptionsGUI.setImage(assetManager, "Debug_Options.png", true);
+                debugOptionsGUI.setImage(assetManager, "Textures/Debug_Options.png", true);
                 debugOptionsGUI.setWidth(settings.getWidth());
                 debugOptionsGUI.setHeight(settings.getHeight());
                 debugOptionsGUI.setPosition(0, 0);
@@ -616,7 +616,7 @@ class RoomGenerator{
         floorMat.setColor("Diffuse", ColorRGBA.Gray);
         wallMat.setColor("Diffuse", ColorRGBA.Gray);
         //Textures The Materials
-        wallMat.setTexture("DiffuseMap", this.assetManager.loadTexture("WallTexture.png"));
+        wallMat.setTexture("DiffuseMap", this.assetManager.loadTexture("Textures/WallTexture.png"));
         //Attaches The Material To It's Geometry
         floorGeom.setMaterial(floorMat);
         floorGeom2.setMaterial(floorMat);
@@ -677,7 +677,7 @@ class RoomGenerator{
         blockGeom.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
         blockMat.setBoolean("UseMaterialColors", true);
         blockMat.setColor("Diffuse", ColorRGBA.Gray);
-        Texture tex = this.assetManager.loadTexture("BlockTexture.png");
+        Texture tex = this.assetManager.loadTexture("Textures/BlockTexture.png");
         tex.setMagFilter(Texture.MagFilter.Nearest);
         tex.setMinFilter(Texture.MinFilter.Trilinear);
         blockMat.setTexture("DiffuseMap", tex);
@@ -735,7 +735,7 @@ class CharacterObj {
         this.npcMesh.updateCounts();
         this.geo = new Geometry("Character".concat(Integer.toString(globalCharCount + 1)), this.npcMesh);
         this.mat = new Material(this.assetManager, "Common/MatDefs/Light/Lighting.j3md");
-        this.mat.setTexture("DiffuseMap", this.assetManager.loadTexture("TestPNG.png"));
+        this.mat.setTexture("DiffuseMap", this.assetManager.loadTexture("Textures/TestPNG.png"));
         this.mat.setBoolean("UseMaterialColors", true);
         this.mat.setColor("Diffuse", ColorRGBA.Cyan);
         this.geo.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
@@ -750,6 +750,10 @@ class CharacterObj {
         this.billBoardNode.addControl(bbControl);
         globalCharCount++;
     }
+    /**
+     * Renders The BillBoard Character
+     * @param rNode The RootNode To Attach It To. Must Be Same As Actual RootNode From App
+     */
     public void render(Node rNode) {
         rNode.attachChild(this.billBoardNode);
         System.out.println("Mesh identity: " + System.identityHashCode(this.npcMesh));
@@ -767,6 +771,7 @@ class CharacterObj {
  */
 class InteractionController {
     private Map<String, Boolean> interactionMap;
+    /**Constructs An Interaction Controller To Control Interactions */
     public InteractionController() {
         interactionMap = new HashMap<>();
         interactionMap.put("Shop1.obj", false);
@@ -783,6 +788,11 @@ class InteractionController {
     public void updateValue(String name, boolean newVal) {
         interactionMap.put(name, newVal);
     }
+    /**
+     * Gets A Value From The Interaction List
+     * @param name The Key To Get A Value From
+     * @return The Value, Or Null
+     */
     public boolean getValue(String name) {
         return interactionMap.get(name);
     }
@@ -813,9 +823,9 @@ class Utils {
     /**An Enumerator For Every Block ID. */
     enum BlockID {
         /**A Test Block */
-        TEST("BlockTexture.png"),
+        TEST("Textures/BlockTexture.png"),
         /**Another Test Block */
-        TEST2("SomeTexture.png");
+        TEST2("Textures/SomeTexture.png");
 
         /**PNG/Texture Associated With An ID */
         private final String idTex;
