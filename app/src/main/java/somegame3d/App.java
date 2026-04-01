@@ -314,8 +314,6 @@ public class App extends SimpleApplication implements ActionListener {
         guiNode.attachChild(text);
         devText.setText(Integer.toString(developedProducts));
         guiNode.attachChild(devText);
-        RoomGenerator.floorPhysics3.setPhysicsLocation(RoomGenerator.floorPhysics3.getPhysicsLocation().add(new Vector3f(0, tpf * 0.1f, 0)));
-        RoomGenerator.floorGeom3.setLocalTranslation(RoomGenerator.floorPhysics3.getPhysicsLocation().add(new Vector3f(0, tpf * 0.1f, 0)));
         desiredDir.set(0, 0, 0);
         if (moveForward) {
             desiredDir.addLocal(new Vector3f(cam.getDirection().x, 0, cam.getDirection().z));
@@ -531,7 +529,8 @@ public class App extends SimpleApplication implements ActionListener {
                     canMove = true;
                 }
             } else if(intCont.getValue("Block.test")) {
-                System.out.println("Block Clicked");
+                rootNode.detachChildNamed("BlockTest");
+                bulletAppState.getPhysicsSpace().remove(gen.blockGeom);
             }
         } else if(name.equals("Toggle_Flashlight") && isPressed) {
             flashlight.setEnabled(!flashlight.isEnabled());
@@ -637,7 +636,7 @@ class RoomGenerator{
         //Creates The RigidBodyControl For The Geometry
         RigidBodyControl floorPhysics = new RigidBodyControl(new BoxCollisionShape(new Vector3f(10, 1, 10)), 0f);
         RigidBodyControl floorPhysics2 = new RigidBodyControl(new BoxCollisionShape(new Vector3f(10, 1, 10)), 0f);
-        floorPhysics3 = new RigidBodyControl(new BoxCollisionShape(new Vector3f(10, 1, 10)), 0f); floorPhysics3.setKinematic(true);
+        floorPhysics3 = new RigidBodyControl(new BoxCollisionShape(new Vector3f(10, 1, 10)), 0f);
         RigidBodyControl floorPhysics4 = new RigidBodyControl(new BoxCollisionShape(new Vector3f(10, 1, 10)), 0f);
         RigidBodyControl floorPhysics5 = new RigidBodyControl(new BoxCollisionShape(new Vector3f(10, 1, 10)), 0f);
         RigidBodyControl starterWallPhysics = new RigidBodyControl(new BoxCollisionShape(new Vector3f(((Box) starterWallGeometry.getMesh()).getXExtent(), 10, ((Box) starterWallGeometry.getMesh()).getZExtent())), 0f);
@@ -806,3 +805,71 @@ class InvalidPurchaseException extends RuntimeException {
         super(m.toString());
     }
 }
+/**This Class Has A Bunch Of Utilities That Are Used. 
+ * @apiNote You Should Not Instantiate This Class. Doing So Throws An Exception. If You Want To Tho, See The See Also.
+ * @see #Utils
+*/
+class Utils {
+    /**An Enumerator For Every Block ID. */
+    enum BlockID {
+        /**A Test Block */
+        TEST("BlockTexture.png"),
+        /**Another Test Block */
+        TEST2("SomeTexture.png");
+
+        /**PNG/Texture Associated With An ID */
+        private final String idTex;
+        /**
+         * Constructs An Entry For The BlockID Enumerator
+         * @param val The Value To Set
+         */
+        private BlockID(String val) {
+            this.idTex = val;
+        }
+        /**
+         * Gets The Value Associated With An Entry
+         * @return The Texture Associated With An ID
+         */
+        public String getValue() {
+            return idTex;
+        }
+        /**
+         * Returns The Entry In BlockID With The Specified Value, Or Null If None Exist.
+         * @param val The Value To Check For
+         * @return The Entry, Or Null
+         */
+        public static BlockID getForValue(String val) {
+            for(BlockID bid : values()) {
+                if(bid.idTex.equals(val)) {
+                    return bid;
+                }
+            }
+            return null;
+        }
+    }
+    /**
+     * Constructs A New Utils Object. You Shouldn't Do This
+     * @throws UnsupportedOperationException Because This Operation Is NOT Supported
+     * @author IDEKAnymoreTBH On Github
+     */
+    public Utils() {
+        throw new UnsupportedOperationException("This Is A Utils Class. You Cannot Initialize It");
+    }
+    /**
+     * Places A Block.
+     * @param x The X To Place It At
+     * @param y The Y To Place It At
+     * @param z The Z To Place It At
+     * @param width The Total Width To Give The Block
+     * @param length The Total Length To Give The Block
+     * @param height The Total Height To Give The Block
+     * @param bid The BlockID To Give The Block (See BlockID Enum)
+     * @see BlockID
+     */
+    public void placeBlock(int x, int y, int z, int width, int length, int height, BlockID bid) {
+
+    }
+}
+//To Compile This, First Get It Into A Fat JAR Using ShadowJar, Then Do:
+//jpackage --name GameName --input build/libs --main-jar GameName-1.0.jar --main-class packagePath --type exe / dmg / deb --icon resources/icons/game.(ico/icns) (Dont Put --icon For Linux)
+//If Needed, Add --app-version, --vendor, --description
