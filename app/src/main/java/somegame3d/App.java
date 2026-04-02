@@ -6,13 +6,17 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
+
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+
 import com.jme3.app.SimpleApplication;
 import com.jme3.asset.AssetManager;
-import com.jme3.audio.AudioData.DataType;
-import com.jme3.audio.AudioNode;
-import com.jme3.bounding.BoundingBox;
-import com.jme3.bounding.BoundingVolume;
-import com.jme3.light.DirectionalLight;
 import com.jme3.light.SpotLight;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
@@ -42,7 +46,6 @@ import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.collision.shapes.BoxCollisionShape;
 import com.jme3.bullet.control.BetterCharacterControl;
 import com.jme3.bullet.control.RigidBodyControl;
-import com.jme3.collision.CollisionResult;
 import com.jme3.collision.CollisionResults;
 import tonegod.gui.core.Screen;
 import com.jme3.scene.control.BillboardControl;
@@ -221,6 +224,7 @@ public class App extends SimpleApplication implements ActionListener {
         gen = new RoomGenerator(assetManager, rootNode, bulletAppState);
         gen.generateStarterRoom();
         gen.generateTestBlock(-10, 5, 0, 2, 2, 2);
+        gen.generateTestBlock(-8, 5, 0, 2, 2, 2);
         //Player(Not Gonna Have A Model Until Needed)
         playerSpatial = new Geometry("Box", new Box(0, 0, 0));
         Material playerMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
@@ -412,12 +416,17 @@ public class App extends SimpleApplication implements ActionListener {
             walkDirMult = (isPressed && stamina > 0) ? 10f : 4f;
         } else if (name.equals("Click") && isPressed) {
             if(inputManager.getCursorPosition().x >= 777.0f && inputManager.getCursorPosition().x <= 1142.0f && inputManager.getCursorPosition().y <= 901.0f && inputManager.getCursorPosition().y >= 782.0f && isInMainMenu) {
+                //Story Mode
                 inputManager.setCursorVisible(false);
                 flyCam.setEnabled(true);
                 isInMainMenu = false;
                 guiNode.detachAllChildren();
             }
             if(inputManager.getCursorPosition().x >= 777.0f && inputManager.getCursorPosition().x <= 1142.0f && inputManager.getCursorPosition().y <= 662.0f && inputManager.getCursorPosition().y >= 537.0f && isInMainMenu) {
+                //Multiplayer Button
+            }
+            if(inputManager.getCursorPosition().x >= 770.0f && inputManager.getCursorPosition().x <= 1142.0f && inputManager.getCursorPosition().y <= 414.0f && inputManager.getCursorPosition().y >= 295.0f && isInMainMenu) {
+                //Settings
                 isInSettings = true;
                 isInMainMenu = false;
                 guiNode.detachChildNamed("Main_Menu");
@@ -429,22 +438,27 @@ public class App extends SimpleApplication implements ActionListener {
                 guiNode.attachChild(settingsGUI);
             }
             if(inputManager.getCursorPosition().x >= 777.0f && inputManager.getCursorPosition().x <= 1142.0f && inputManager.getCursorPosition().y <= 187.0f && inputManager.getCursorPosition().y >= 68.0f && isInMainMenu) {
+                //Quit
                 System.exit(0);
             }
             if(inputManager.getCursorPosition().x >= 1820.0f && inputManager.getCursorPosition().x <= 1903.0f && inputManager.getCursorPosition().y <= 1183.0f && inputManager.getCursorPosition().y >= 1101.0f && isInSettings) {
+                //Exit Button
                 isInSettings = false;
                 isInMainMenu = true;
                 guiNode.attachChild(mainMenu);
             }
             if(inputManager.getCursorPosition().x >= 1820.0f && inputManager.getCursorPosition().x <= 1903.0f && inputManager.getCursorPosition().y <= 1183.0f && inputManager.getCursorPosition().y >= 1101.0f && (isInSettingsKeyBinds || isInSettingsOptions || isInSettingsDebugOptions)) {
+                //Exit Button 2
                 isInSettingsKeyBinds = false;
                 isInSettingsOptions = false;
                 isInSettingsDebugOptions = false;
                 isInSettings = true;
                 guiNode.detachAllChildren();
                 guiNode.attachChild(settingsGUI);
+                System.out.println("IDEK3");
             }
             if(inputManager.getCursorPosition().x >= 753.0f && inputManager.getCursorPosition().x <= 1168.0f && inputManager.getCursorPosition().y <= 1106.0f && inputManager.getCursorPosition().y >= 1021.0f && isInSettings) {
+                //Options
                 isInSettings = false;
                 isInSettingsOptions = true;
                 guiNode.detachChildNamed("Settings_Menu");
@@ -456,6 +470,7 @@ public class App extends SimpleApplication implements ActionListener {
                 guiNode.attachChild(optionsGUI);
             }
             if(inputManager.getCursorPosition().x >= 753.0f && inputManager.getCursorPosition().x <= 1168.0f && inputManager.getCursorPosition().y <= 1194.0f && inputManager.getCursorPosition().y >= 1113.0f && isInSettings) {
+                //Keybinding
                 isInSettings = false;
                 isInSettingsKeyBinds = true;
                 guiNode.detachChildNamed("Settings_Menu");
@@ -467,6 +482,7 @@ public class App extends SimpleApplication implements ActionListener {
                 guiNode.attachChild(keybindsGUI);
             }
             if(inputManager.getCursorPosition().x >= 753.0f && inputManager.getCursorPosition().x <= 1168.0f && inputManager.getCursorPosition().y <= 1015.0f && inputManager.getCursorPosition().y >= 931.0f && isInSettings) {
+                //Debug Options
                 isInSettings = false;
                 isInSettingsDebugOptions = true;
                 guiNode.detachChildNamed("Settings_Menu");
@@ -820,6 +836,8 @@ class InvalidPurchaseException extends RuntimeException {
  * @see #Utils
 */
 class Utils {
+    private static final String PROJECT_URL = "https://mnxrzxedpwbfzkcunqtp.supabase.co/rest/v1/Servers";
+    private static final String API_KEY = "sb_publishable_BSGqs8kQhXzDisKHDdWr_w_oQoIwuEN";
     /**An Enumerator For Every Block ID. */
     enum BlockID {
         /**A Test Block */
@@ -877,7 +895,33 @@ class Utils {
      * @see BlockID
      */
     public void placeBlock(int x, int y, int z, int width, int length, int height, BlockID bid) {
-
+        Geometry blockGeom = new Geometry();
+    }
+    public void createMap(String toCreate) {
+        if(toCreate.equals("StoryMap")) {
+            //Load Story Maps
+        } else if(toCreate.equals("MultiplayerMap")) {
+            //Load Some Random Map IDK
+        }
+    }
+    public String insert(String keyVal) throws Exception {
+        try(CloseableHttpClient client = HttpClients.createDefault()) {
+            HttpPost request = new HttpPost(PROJECT_URL);
+            request.setHeader("apikey", API_KEY);
+            request.setHeader("Authorization", "Bearer " + API_KEY);
+            request.setHeader("Content-Type", "application/json");
+            String json = String.format("{\"Server_Test\": %s}", keyVal);
+            request.setEntity(new StringEntity(json));
+            return client.execute(request, response -> EntityUtils.toString(response.getEntity()));
+        }
+    }
+    public String getAll() throws Exception {
+        try(CloseableHttpClient client = HttpClients.createDefault()) {
+            HttpGet request = new HttpGet(PROJECT_URL);
+            request.setHeader("apikey", API_KEY);
+            request.setHeader("Authorization", "Bearer " + API_KEY);
+            return client.execute(request, response -> EntityUtils.toString(response.getEntity())); 
+        }
     }
 }
 //To Compile This, First Get It Into A Fat JAR Using ShadowJar, Then Do:

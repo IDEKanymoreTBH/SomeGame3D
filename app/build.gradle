@@ -33,6 +33,8 @@ dependencies {
     implementation "org.codehaus.groovy:groovy-all:3.0.19"
     implementation "com.github.stephengold:tonegodgui:0.1.7"
     implementation "org.jmonkeyengine:jme3-effects:3.6.1-stable"
+    implementation "org.apache.httpcomponents.client5:httpclient5:5.2"
+    implementation "com.fasterxml.jackson.core:jackson-databind:2.17.0"
     // This dependency is used by the application.
     implementation libs.guava
 }

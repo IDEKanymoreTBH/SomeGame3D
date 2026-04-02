@@ -1,0 +1,6 @@
+<DOCTYPE iat>
+#chunkNum: 1#
+#START_CHUNK#
+!Block.create(x=0, y=0, z=0, w=0, l=0, h=0)!
+!Console.PrintLine("This Worked")!
+#END_CHUNK#
