@@ -35,3 +35,6 @@ So, This Game I Made. Not That Impressive. I May Finish It If I Want To. If You 
     - Fixed Texture Paths For All Asset Users
     - Added Some More Documentation
     - Changed Skybox Color
+- v0.1.4:
+    - Basically Reworked Ideas
+    - Yeah IDEK What The Idea Is ATP Either
