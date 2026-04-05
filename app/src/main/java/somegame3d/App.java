@@ -42,11 +42,14 @@ import com.jme3.math.Vector3f;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.input.*;
 import com.jme3.input.controls.*;
+import com.jme3.input.event.MouseButtonEvent;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.collision.shapes.BoxCollisionShape;
 import com.jme3.bullet.control.BetterCharacterControl;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.collision.CollisionResults;
+
+import tonegod.gui.controls.windows.AlertBox;
 import tonegod.gui.core.Screen;
 import com.jme3.scene.control.BillboardControl;
 import com.jme3.font.BitmapFont;
@@ -424,6 +427,18 @@ public class App extends SimpleApplication implements ActionListener {
             }
             if(inputManager.getCursorPosition().x >= 777.0f && inputManager.getCursorPosition().x <= 1142.0f && inputManager.getCursorPosition().y <= 662.0f && inputManager.getCursorPosition().y >= 537.0f && isInMainMenu) {
                 //Multiplayer Button
+                AlertBox albx = new AlertBox(screen, "alert", new Vector2f(15, 15)) {
+                    @Override
+                    public void onButtonOkPressed(MouseButtonEvent evt, boolean toggled) {
+                        System.out.println("Just Testing Some Random Thing");
+                        this.hide();
+                        screen.removeElement(this);
+                    }
+                };
+                albx.setMsg("Multiplayer Is Not Yet Added. Come Back Soon!");
+                albx.setButtonOkText("I Understand");
+                screen.addElement(albx);
+                albx.show();
             }
             if(inputManager.getCursorPosition().x >= 770.0f && inputManager.getCursorPosition().x <= 1142.0f && inputManager.getCursorPosition().y <= 414.0f && inputManager.getCursorPosition().y >= 295.0f && isInMainMenu) {
                 //Settings
