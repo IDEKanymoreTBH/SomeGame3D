@@ -2,6 +2,7 @@
  * - Final Idea: Code Clicker: Player Messes With Code And Stuff
 */
 package somegame3d;
+import java.lang.management.GarbageCollectorMXBean;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -39,6 +40,7 @@ import com.jme3.math.Quaternion;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
+import com.jme3.math.Vector4f;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.input.*;
 import com.jme3.input.controls.*;
@@ -54,8 +56,13 @@ import tonegod.gui.core.Screen;
 import com.jme3.scene.control.BillboardControl;
 import com.jme3.font.BitmapFont;
 import com.jme3.font.BitmapText;
+import com.jme3.font.BitmapFont.Align;
 import com.jme3.post.ssao.SSAOFilter;
 import com.jme3.post.FilterPostProcessor;
+
+import java.awt.Toolkit;
+import java.awt.GraphicsEnvironment;
+
 public class App extends SimpleApplication implements ActionListener {
     public InteractionController intCont;
     //Global Values
@@ -427,16 +434,19 @@ public class App extends SimpleApplication implements ActionListener {
             }
             if(inputManager.getCursorPosition().x >= 777.0f && inputManager.getCursorPosition().x <= 1142.0f && inputManager.getCursorPosition().y <= 662.0f && inputManager.getCursorPosition().y >= 537.0f && isInMainMenu) {
                 //Multiplayer Button
-                AlertBox albx = new AlertBox(screen, "alert", new Vector2f(15, 15)) {
+                System.out.println("ScreenSize: " + Float.toString(screen.getWidth()) + ", " + Float.toString(screen.getHeight()));
+                int albxW = 377;
+                int albxH = 500;
+                AlertBox albx = new AlertBox(screen, "alert", new Vector2f((screen.getWidth() / 2) - (albxW/2), (screen.getHeight() / 2 - albxH/2)), new Vector2f(albxW, albxH)) {
                     @Override
                     public void onButtonOkPressed(MouseButtonEvent evt, boolean toggled) {
-                        System.out.println("Just Testing Some Random Thing");
                         this.hide();
                         screen.removeElement(this);
                     }
                 };
                 albx.setMsg("Multiplayer Is Not Yet Added. Come Back Soon!");
-                albx.setButtonOkText("I Understand");
+                albx.setTextPadding(new Vector4f(0,0,0,0));
+                albx.setButtonOkText("OK");
                 screen.addElement(albx);
                 albx.show();
             }
