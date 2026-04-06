@@ -42,3 +42,7 @@ So, This Game I Made. Not That Impressive. I May Finish It If I Want To. If You 
     - Added Some Stuff Related To The Multiplayer Maps
     - Edit The Main Menu To Have Everything
     - Added Some Random File Imma Delete Soon
+- v0.1.6:
+    - Added Functionality To The Buttons
+    - The Multiplayer Does Not Work Yet, So It Displays An Alert To Notify You
+    - Added Some Textures For Blocks I Think
