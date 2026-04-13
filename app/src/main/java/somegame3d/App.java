@@ -1,14 +1,11 @@
 /*Ideas For Game:
- * - Final Idea: Code Clicker: Player Messes With Code And Stuff
+ * - Final Idea: JBattle: JME Krunker Clone With Blocks To Place
 */
 package somegame3d;
-import java.lang.management.GarbageCollectorMXBean;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
-
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
@@ -109,6 +106,7 @@ public class App extends SimpleApplication implements ActionListener {
     Picture shop1Gui = new Picture("Shop1GUI");
     Picture cursor;
     Picture pauseMenu = new Picture("Pause_Menu");
+    Picture testGui = new Picture("FPSHand");
     RoomGenerator gen;
     //The Screen, Specifically Designed For ToneGodGUI
     public Geometry targetGeometry;
@@ -230,6 +228,11 @@ public class App extends SimpleApplication implements ActionListener {
         ssao.setScale(0.5f);
         ssao.setBias(0.1f);
         viewPort.addProcessor(fpp);
+        //Test Thing
+        testGui.setImage(assetManager, "Textures/Hands.png", true);
+        testGui.setWidth(settings.getWidth());
+        testGui.setHeight(settings.getHeight());
+        testGui.setPosition(0, 0);
         //Floor
         gen = new RoomGenerator(assetManager, rootNode, bulletAppState);
         gen.generateStarterRoom();
@@ -304,6 +307,7 @@ public class App extends SimpleApplication implements ActionListener {
         flashlight.setDirection(cam.getDirection().normalize());
         guiNode.attachChild(staminaBar);
         guiNode.attachChild(devBar);
+        guiNode.attachChild(testGui);
         if(walkDirMult == 10f && (moveForward || moveBackwards || strafeLeft || strafeRight)) {
             if(staminaDecreaseCounter == 7) {
                 staminaDecreaseCounter = 0;
