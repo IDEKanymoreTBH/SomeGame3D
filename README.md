@@ -83,3 +83,7 @@ Here, The 'message' Parameter Is The Message Displayed By The Exception Thrown. 
     - Added Functionality To The Buttons
     - The Multiplayer Does Not Work Yet, So It Displays An Alert To Notify You
     - Added Some Textures For Blocks I Think
+- v0.1.7:
+    - There Is Some More Documentation
+    - I Added Some Hands To The GUI
+    - [Added An Entire Markdown For A Single File Type](#the-iat-file-stuff)
