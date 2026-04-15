@@ -92,3 +92,5 @@ Here, The Text Parameter Represents The Path To The Texture You Desire. This Mus
     - [Added An Entire Markdown For A Single File Type](#the-iat-file-stuff)
 - v0.1.8:
     - Added Some More Stuff To The IAT File Syntax.
+    - Removed The Visual Cursor Because It Was Not Worth It
+    - Fixed The Settings Button Hitbox
