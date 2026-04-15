@@ -5,7 +5,6 @@ package somegame3d;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
@@ -13,10 +12,9 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
-import org.apache.tools.ant.taskdefs.condition.Xor;
-
 import com.jme3.app.SimpleApplication;
 import com.jme3.asset.AssetManager;
+import com.jme3.asset.AssetNotFoundException;
 import com.jme3.light.SpotLight;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
@@ -276,7 +274,6 @@ public class App extends SimpleApplication implements ActionListener {
         //Floor
         gen = new RoomGenerator(assetManager, rootNode, bulletAppState);
         gen.generateStarterRoom();
-        gen.generateTestBlock(-8, 5, 0, 2, 2, 2);
         //Player(Not Gonna Have A Model Until Needed)
         playerSpatial = new Geometry("Box", new Box(0, 0, 0));
         Material playerMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
@@ -1014,6 +1011,7 @@ class IATFileInterpreter {
     private Node rNode;
     private AssetManager assetManager;
     private BulletAppState bulletAppState;
+    private static Texture textureToUse;
     /**All Different Interpret Modes For IATFileInterpreter */
     enum IATFileInterpretMode {
         /**The First Version Of IATFile.*/
@@ -1030,6 +1028,7 @@ class IATFileInterpreter {
         this.rNode = rNode;
         this.assetManager = assetManager;
         this.bulletAppState = bulletAppState;
+        textureToUse = null;
         if(ifim == IATFileInterpretMode.IATFILE_V1) {
             this.ifim = "IAT_V1";
         } else if(ifim == IATFileInterpretMode.IATFILE_V2) {
@@ -1108,6 +1107,13 @@ class IATFileInterpreter {
                 IATFileInterpreter.CMDPrint(temp2[i].toString().substring(temp2[i].toString().indexOf("printf('") + 8, temp2[i].toString().indexOf("');")));
             } else if(temp2[i].toString().startsWith("IATSystemManager.crash('") && temp2[i].toString().endsWith("');")) {
                 IATFileInterpreter.CMDCrash(temp2[i].toString().substring(temp2[i].toString().indexOf("crash('") + 7, temp2[i].toString().indexOf("');")));
+            } else if(temp2[i].toString().startsWith("ObjCreator.setTexture('") && temp2[i].toString().endsWith("');")) {
+                if(IATFileInterpreter.CMDChangeTexture(temp2[i].toString(), this.assetManager) == null) {
+                    System.out.println("Error: SetTexture Call Did Not Succeed Because The Texture Path Was Invalid");
+                    return FAILURE;
+                } else {
+                    textureToUse = IATFileInterpreter.CMDChangeTexture(temp2[i].toString(), this.assetManager);
+                }
             } else {
                 //Syntax Error
                 System.out.println(String.format("Error: Line %d From: '%s' Is Not Any Recognized Command, Or Has A Syntax Error.", i + 2, fileName));
@@ -1168,7 +1174,7 @@ class IATFileInterpreter {
             geo.setShadowMode(ShadowMode.CastAndReceive);
             mat.setBoolean("UseMaterialColors", true);
             mat.setColor("Diffuse", ColorRGBA.Gray);
-            Texture tex = am.loadTexture("Textures/AdhesiveBlock.png");
+            Texture tex = IATFileInterpreter.textureToUse;
             tex.setMagFilter(Texture.MagFilter.Nearest);
             tex.setMinFilter(Texture.MinFilter.Trilinear);
             mat.setTexture("DiffuseMap", tex);
@@ -1181,6 +1187,18 @@ class IATFileInterpreter {
         } else {
             System.out.println("Error: Tried To Create An Object Of Type 'Non-Existant'");
             return "Error";
+        }
+    }
+    private static Texture CMDChangeTexture(String textToInterpret, AssetManager am) {
+        String temp = textToInterpret.substring(textToInterpret.indexOf("ObjCreator.setTexture('") + 23, textToInterpret.indexOf("');"));
+        try {
+            Texture tex = am.loadTexture(temp);
+            tex.setMagFilter(Texture.MagFilter.Nearest);
+            tex.setMinFilter(Texture.MinFilter.Trilinear);
+            return tex;
+        } catch(AssetNotFoundException err) {
+            System.out.println("Error: Texture " + temp + " Is Not A Valid Texture.");
+            return null;
         }
     }
     /**
