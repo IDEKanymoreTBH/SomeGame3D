@@ -176,17 +176,6 @@ public class App extends SimpleApplication implements ActionListener {
         // albx.setButtonOkText("Yeh");
         // screen.addElement(albx);
         // albx.show();
-        //Code To Set Custom Cursor
-        cursor = new Picture("CursorTex");
-        cursor.setWidth(32);
-        cursor.setHeight(46);
-        cursor.setImage(assetManager, "Textures/CursorTexture.png", true);
-        cursor.setPosition(50, 50);
-        cursor.setQueueBucket(RenderQueue.Bucket.Gui);
-        cursor.setCullHint(Spatial.CullHint.Never);
-        cursor.getMaterial().getAdditionalRenderState().setDepthTest(false);
-        cursor.setLocalTranslation(50, 50, 10);
-        guiNode.attachChild(cursor);
         //Interaction Stuff
         intCont = new InteractionController();
         //Other Stuff Like The NPC Test
@@ -331,14 +320,14 @@ public class App extends SimpleApplication implements ActionListener {
         bulletAppState.getPhysicsSpace().add(testObjControl);
         IATFileInterpreter iatfi = new IATFileInterpreter(IATFileInterpretMode.IATFILE_V1, rootNode, assetManager, bulletAppState);
         iatfi.interpret("MapFiles/TestMap.iat");
+        flyCam.setEnabled(false);
+        inputManager.setCursorVisible(true);
         //Set Camera Fly Speed
         flyCam.setMoveSpeed(20);
     }
     @Override
     public void simpleUpdate(float tpf) {
         fpsText.setColor(ColorRGBA.White);
-        cursor.setPosition(inputManager.getCursorPosition().x - 5, inputManager.getCursorPosition().y - 40);
-        cursor.setLocalTranslation(cursor.getLocalTranslation().x, cursor.getLocalTranslation().y, 10);
         //Makes The Game Not Run Until The Menus Are Done
         if(isInMainMenu || isInSettings || isInSettingsKeyBinds || isInSettingsOptions || isInSettingsDebugOptions) return;
         flashlight.setPosition(cam.getLocation());
@@ -513,6 +502,7 @@ public class App extends SimpleApplication implements ActionListener {
                 isInSettings = false;
                 isInMainMenu = true;
                 guiNode.attachChild(mainMenu);
+                inputManager.setCursorVisible(true);
             }
             if(inputManager.getCursorPosition().x >= 1820.0f && inputManager.getCursorPosition().x <= 1903.0f && inputManager.getCursorPosition().y <= 1183.0f && inputManager.getCursorPosition().y >= 1101.0f && (isInSettingsKeyBinds || isInSettingsOptions || isInSettingsDebugOptions)) {
                 //Exit Button 2
@@ -550,15 +540,20 @@ public class App extends SimpleApplication implements ActionListener {
             }
             if(inputManager.getCursorPosition().x >= 753.0f && inputManager.getCursorPosition().x <= 1168.0f && inputManager.getCursorPosition().y <= 1015.0f && inputManager.getCursorPosition().y >= 931.0f && isInSettings) {
                 //Debug Options
-                isInSettings = false;
-                isInSettingsDebugOptions = true;
-                guiNode.detachChildNamed("Settings_Menu");
-                debugOptionsGUI = new Picture("Debug_Menu");
-                debugOptionsGUI.setImage(assetManager, "Textures/Debug_Options.png", true);
-                debugOptionsGUI.setWidth(settings.getWidth());
-                debugOptionsGUI.setHeight(settings.getHeight());
-                debugOptionsGUI.setPosition(0, 0);
-                guiNode.attachChild(debugOptionsGUI);
+                int albxW = 377;
+                int albxH = 500;
+                AlertBox albx = new AlertBox(screen, "alert", new Vector2f((screen.getWidth() / 2) - (albxW/2), (screen.getHeight() / 2 - albxH/2)), new Vector2f(albxW, albxH)) {
+                    @Override
+                    public void onButtonOkPressed(MouseButtonEvent evt, boolean toggled) {
+                        this.hide();
+                        screen.removeElement(this);
+                    }
+                };
+                albx.setMsg("This Feature Is No Longer Available.");
+                albx.setTextPadding(new Vector4f(0, 0, 0, 0));
+                albx.setButtonOkText("OK");
+                screen.addElement(albx);
+                albx.show();
             }
             if(inputManager.getCursorPosition().x >= 776.0f && inputManager.getCursorPosition().x <= 1146.0f && inputManager.getCursorPosition().y <= 1149.0f && inputManager.getCursorPosition().y >= 1070.0f) {
                 //Changes W Key To Another
