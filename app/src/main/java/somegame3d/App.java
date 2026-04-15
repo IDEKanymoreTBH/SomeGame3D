@@ -1061,7 +1061,10 @@ class IATFileInterpreter {
         Object[] temp2 = Arrays.copyOfRange(objs, 2, objs.length - 1);
         for(int i = 1; i < temp2.length; i++) {
             if(temp2[i].toString().startsWith("ObjCreator.create('") && temp2[i].toString().endsWith(");")) {
-                IATFileInterpreter.CMDGenerateObject(temp2[i].toString(), this.assetManager, this.bulletAppState, this.rNode);
+                if(IATFileInterpreter.CMDGenerateObject(temp2[i].toString(), this.assetManager, this.bulletAppState, this.rNode) == "Error") {
+                    System.out.println("Error: CMDGenerateObject.java Tried To Create An Object Of Non-Existant Type");
+                    return FAILURE;
+                }
             } else if(temp2[i].toString().startsWith("IATPrintStream.printf('") && temp2[i].toString().endsWith("');")) {
                 IATFileInterpreter.CMDPrint(temp2[i].toString().substring(temp2[i].toString().indexOf("printf('") + 8, temp2[i].toString().indexOf("');")));
             } else if(temp2[i].toString().startsWith("IATSystemManager.crash('") && temp2[i].toString().endsWith("');")) {
