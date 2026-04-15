@@ -8,4 +8,7 @@ ObjCreator.create('Geometry', -10, 5, 10, 2, 2, 2);
 ObjCreator.setTexture('Textures/WallTexture.png');
 ObjCreator.create('Geometry', 0, -1, 0, 40, 2, 40);
 ObjCreator.create('Geometry', 5, 10, 5, 10, 2, 10);
+ObjCreator.create('Geometry', 5, 5, 5, 2, 10, 10);
+ObjCreator.create('Geometry', 5, 0, 5, 10, 2, 10);
+ObjCreator.createMoveable('Geometry', 10, 3, 10, 2, 2, 2);
 #EndDoc

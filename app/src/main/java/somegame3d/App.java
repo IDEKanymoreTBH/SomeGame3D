@@ -12,10 +12,12 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
+
+import com.google.common.hash.HashFunction;
 import com.jme3.app.SimpleApplication;
 import com.jme3.asset.AssetManager;
 import com.jme3.asset.AssetNotFoundException;
-import com.jme3.light.DirectionalLight;
+import com.jme3.light.AmbientLight;
 import com.jme3.light.SpotLight;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
@@ -30,6 +32,7 @@ import com.jme3.texture.Texture;
 import com.jme3.ui.Picture;
 import com.simsilica.lemur.GuiGlobals;
 
+import groovyjarjarantlr4.v4.parse.ANTLRParser.terminal_return;
 import somegame3d.IATFileInterpreter.IATFileInterpretMode;
 
 import com.jme3.material.Material;
@@ -124,6 +127,8 @@ public class App extends SimpleApplication implements ActionListener {
     public boolean isInPauseMenu = false;
     /**An Old Stat That Used To Be Used*/
     public int developedProducts = 0;
+    /**The Moving Platforms List */
+    public static ArrayList<Geometry> movingPlatforms = new ArrayList<>();
     //All GUI Elements(Menus, UI, Etc)
     Picture mainMenu;
     Picture settingsGUI;
@@ -134,7 +139,8 @@ public class App extends SimpleApplication implements ActionListener {
     BitmapFont font;
     BitmapText text;
     SpotLight flashlight;
-    DirectionalLight sun;
+    AmbientLight amblight;
+    Picture crosshair = new Picture("CrossHair");
     Picture interactGui = new Picture("Interact_Gui");
     Picture shop1Gui = new Picture("Shop1GUI");
     Picture cursor;
@@ -206,6 +212,10 @@ public class App extends SimpleApplication implements ActionListener {
         pauseMenu.setWidth(settings.getWidth());
         pauseMenu.setHeight(settings.getHeight());
         pauseMenu.setPosition(0, 0);
+        crosshair.setImage(assetManager, "Textures/Crosshair.png", true);
+        crosshair.setWidth(20);
+        crosshair.setHeight(20);
+        crosshair.setPosition((settings.getWidth()/2)-10, (settings.getHeight()/2)-10);
         setDisplayStatView(false);
         setDisplayFps(fpsShown);
         fpsText.setColor(ColorRGBA.White);
@@ -218,18 +228,19 @@ public class App extends SimpleApplication implements ActionListener {
         stateManager.attach(bulletAppState);
         //Lighting
         flashlight = new SpotLight();
-        viewPort.setBackgroundColor(ColorRGBA.fromRGBA255(117, 244, 255, 255));
-        flashlight.setColor(ColorRGBA.White.mult(2f)); // brightness
+        viewPort.setBackgroundColor(ColorRGBA.Black);
+        flashlight.setColor(ColorRGBA.White.mult(2.5f)); // brightness
         flashlight.setPosition(cam.getLocation());
         flashlight.setDirection(cam.getDirection());
+        //flashlight.setPosition(new Vector3f(10, 10, 0));
+        //flashlight.setDirection(new Vector3f(0, -1, 0));
         flashlight.setSpotRange(75f);                  // how far it shines
-        flashlight.setSpotInnerAngle(8f * FastMath.DEG_TO_RAD);
-        flashlight.setSpotOuterAngle(16f * FastMath.DEG_TO_RAD);
+        flashlight.setSpotInnerAngle(FastMath.PI/2-1.35f);
+        flashlight.setSpotOuterAngle(FastMath.PI/2-1.25f);
         rootNode.addLight(flashlight);
-        sun = new DirectionalLight();
-        sun.setColor(ColorRGBA.White.mult(5f));
-        sun.setDirection(new Vector3f(0, -1, 0));
-        rootNode.addLight(sun);
+        amblight = new AmbientLight();
+        amblight.setColor(ColorRGBA.White.mult(0.035f));
+        rootNode.addLight(amblight);
         //Shadow Renderer
         SpotLightShadowRenderer slsr = new SpotLightShadowRenderer(assetManager, 4096);
         slsr.setLight(flashlight);
@@ -322,6 +333,7 @@ public class App extends SimpleApplication implements ActionListener {
         flashlight.setDirection(cam.getDirection().normalize());
         guiNode.attachChild(staminaBar);
         guiNode.attachChild(testGui);
+        guiNode.attachChild(crosshair);
         if(walkDirMult == 10f && (moveForward || moveBackwards || strafeLeft || strafeRight)) {
             if(staminaDecreaseCounter == 7) {
                 staminaDecreaseCounter = 0;
@@ -405,6 +417,12 @@ public class App extends SimpleApplication implements ActionListener {
         float[] angles = cam.getRotation().toAngles(null);
         angles[0] = FastMath.clamp(angles[0], -FastMath.HALF_PI + 0.1f, FastMath.HALF_PI - 0.1f);
         cam.setRotation(new Quaternion().fromAngles(angles[0], angles[1], angles[2]));
+
+        for (Geometry g : movingPlatforms) {
+            g.setLocalTranslation(g.getLocalTranslation().add(new Vector3f(0, 0, 0f)));
+            g.updateGeometricState();
+            g.updateModelBound();
+        }
     }
     @Override
     public void onAction(String name, boolean isPressed, float tpf) {
@@ -794,6 +812,7 @@ class CharacterObj {
         this.mat.setTexture("DiffuseMap", this.assetManager.loadTexture("Textures/TestPNG.png"));
         this.mat.setBoolean("UseMaterialColors", true);
         this.mat.setColor("Diffuse", ColorRGBA.Cyan);
+        this.mat.setColor("Ambient", ColorRGBA.fromRGBA255(0, 100, 100, 1));
         this.geo.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
         this.mat.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
         this.mat.getAdditionalRenderState().setFaceCullMode(FaceCullMode.Off);
@@ -1087,6 +1106,10 @@ class IATFileInterpreter {
                 } else {
                     textureToUse = IATFileInterpreter.CMDChangeTexture(temp2[i].toString(), this.assetManager);
                 }
+            } else if(temp2[i].toString().startsWith("ObjCreator.createMoveable('") && temp2[i].toString().endsWith(");")) {
+                if(IATFileInterpreter.CMDGenerateMovingObj(temp2[i].toString(), this.assetManager, this.bulletAppState, this.rNode).equals("Error")) {
+                    System.out.println("An Error Occured Making A Moving Platform");
+                }
             } else {
                 //Syntax Error
                 System.out.println(String.format("Error: Line %d From: '%s' Is Not Any Recognized Command, Or Has A Syntax Error.", i + 2, fileName));
@@ -1137,7 +1160,7 @@ class IATFileInterpreter {
                     }
                     chars.remove(0);
                 }
-                System.out.println(chars);
+                System.out.println("Characters Final: " + chars.toString());
                 actualPositions[j] = Integer.parseInt(temp2);
             }
             System.out.println(Arrays.toString(actualPositions));
@@ -1146,14 +1169,17 @@ class IATFileInterpreter {
             Material mat = new Material(am, "Common/MatDefs/Light/Lighting.j3md");
             geo.setShadowMode(ShadowMode.CastAndReceive);
             mat.setBoolean("UseMaterialColors", true);
-            mat.setColor("Diffuse", ColorRGBA.Gray);
+            mat.setColor("Diffuse", ColorRGBA.LightGray);
+            mat.setColor("Ambient", ColorRGBA.Gray);
             Texture tex = IATFileInterpreter.textureToUse;
             tex.setMagFilter(Texture.MagFilter.Nearest);
             tex.setMinFilter(Texture.MinFilter.Trilinear);
             mat.setTexture("DiffuseMap", tex);
             geo.setMaterial(mat);
             rNode.attachChild(geo);
-            RigidBodyControl physics = new RigidBodyControl(new BoxCollisionShape(new Vector3f(actualPositions[3]/2, actualPositions[4]/2, actualPositions[5]/2)), 0f);
+            RigidBodyControl physics;
+            physics = new RigidBodyControl(new BoxCollisionShape(new Vector3f(actualPositions[3]/2, actualPositions[4]/2, actualPositions[5]/2)), 0f);
+            physics.setKinematic(false);
             geo.addControl(physics);
             bas.getPhysicsSpace().add(physics);
             return geo;
@@ -1172,6 +1198,63 @@ class IATFileInterpreter {
         } catch(AssetNotFoundException err) {
             System.out.println("Error: Texture " + temp + " Is Not A Valid Texture.");
             return null;
+        }
+    }
+    private static String CMDGenerateMovingObj(String interpretText, AssetManager am, BulletAppState bas, Node rootNode) {
+        int startI = interpretText.indexOf("'") + 1;
+        int endI = interpretText.lastIndexOf("'");
+        String temp = interpretText.substring(startI, endI);
+        int[] actualPositions = new int[6];
+        if(temp.equals("Geometry")) {
+            ArrayList<Character> chars = new ArrayList<>();
+            for (int i = 0; i < interpretText.toCharArray().length; i++) {
+                if(i > 37 && (((Character)interpretText.charAt(i)).equals('-') || ((Character)interpretText.charAt(i)).equals(',') || Character.isDigit(interpretText.charAt(i)))) {
+                    chars.add(interpretText.charAt(i));
+                }
+            }
+            for (int j = 0; j < actualPositions.length; j++) {
+                String temp2 = "";
+                System.out.println("Chars: [Moving OBJ]: " + chars);
+                for (int i = 0; i < chars.size(); i++) {
+                    if(chars.get(i).equals('-') || Character.isDigit(chars.get(i))) {
+                        temp2 = temp2.concat(chars.get(i).toString());
+                    } else {
+                        break;
+                    }
+                }
+                for(int i = 0; i < temp2.length() + 1; i++) {
+                    if(chars.size() == 1) {
+                        break;
+                    }
+                    chars.remove(0);
+                }
+                System.out.println("Temporary String 2 [Moving Object Wise]: " + temp2);
+                actualPositions[j] = Integer.parseInt(temp2);
+            }
+            System.out.println("Moving Platform's Positions: " + Arrays.toString(actualPositions));
+            Geometry geo = new Geometry("Geometry At X: " + Integer.toString(actualPositions[0]) + ", Y: " + Integer.toString(actualPositions[1]) + ", Z: " + Integer.toString(actualPositions[2]), new Box(actualPositions[3]/2, actualPositions[4]/2, actualPositions[5]/2));
+            geo.setLocalTranslation(actualPositions[0], actualPositions[1], actualPositions[2]);
+            Material mat = new Material(am, "Common/MatDefs/Light/Lighting.j3md");
+            geo.setShadowMode(ShadowMode.CastAndReceive);
+            mat.setBoolean("UseMaterialColors", true);
+            mat.setColor("Diffuse", ColorRGBA.LightGray);
+            mat.setColor("Ambient", ColorRGBA.Gray);
+            Texture tex = IATFileInterpreter.textureToUse;
+            tex.setMagFilter(Texture.MagFilter.Nearest);
+            tex.setMinFilter(Texture.MinFilter.Trilinear);
+            mat.setTexture("DiffuseMap", tex);
+            geo.setMaterial(mat);
+            rootNode.attachChild(geo);
+            RigidBodyControl physics;
+            physics = new RigidBodyControl(new BoxCollisionShape(new Vector3f(actualPositions[3]/2, actualPositions[4]/2, actualPositions[5]/2)), 1f);
+            physics.setKinematic(true);
+            geo.addControl(physics);
+            bas.getPhysicsSpace().add(physics);
+            App.movingPlatforms.add(geo);
+            return "YAY";
+        } else {
+            System.out.println("Error From MovObj: Non-Existant Type Tried.");
+            return "Error";
         }
     }
     /**
