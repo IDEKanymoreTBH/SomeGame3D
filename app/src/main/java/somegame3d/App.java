@@ -5,6 +5,7 @@ package somegame3d;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
@@ -12,6 +13,7 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.apache.tools.ant.taskdefs.condition.Xor;
 
 import com.jme3.app.SimpleApplication;
 import com.jme3.asset.AssetManager;
@@ -28,6 +30,9 @@ import com.jme3.system.AppSettings;
 import com.jme3.texture.Texture;
 import com.jme3.ui.Picture;
 import com.simsilica.lemur.GuiGlobals;
+
+import somegame3d.IATFileInterpreter.IATFileInterpretMode;
+
 import com.jme3.material.Material;
 import com.jme3.material.RenderState;
 import com.jme3.material.RenderState.FaceCullMode;
@@ -39,6 +44,7 @@ import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.math.Vector4f;
 import com.jme3.renderer.queue.RenderQueue;
+import com.jme3.renderer.queue.RenderQueue.ShadowMode;
 import com.jme3.input.*;
 import com.jme3.input.controls.*;
 import com.jme3.input.event.MouseButtonEvent;
@@ -58,6 +64,12 @@ import com.jme3.post.ssao.SSAOFilter;
 import com.jme3.post.FilterPostProcessor;
 
 import java.awt.Toolkit;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.awt.GraphicsEnvironment;
 
 public class App extends SimpleApplication implements ActionListener {
@@ -236,7 +248,6 @@ public class App extends SimpleApplication implements ActionListener {
         //Floor
         gen = new RoomGenerator(assetManager, rootNode, bulletAppState);
         gen.generateStarterRoom();
-        gen.generateTestBlock(-10, 5, 0, 2, 2, 2);
         gen.generateTestBlock(-8, 5, 0, 2, 2, 2);
         //Player(Not Gonna Have A Model Until Needed)
         playerSpatial = new Geometry("Box", new Box(0, 0, 0));
@@ -293,6 +304,8 @@ public class App extends SimpleApplication implements ActionListener {
         RigidBodyControl testObjControl = new RigidBodyControl(new BoxCollisionShape(new Vector3f(((Box) targetGeometry.getMesh()).getXExtent(), ((Box) targetGeometry.getMesh()).getYExtent(), ((Box) targetGeometry.getMesh()).getZExtent())), 0f);
         targetGeometry.addControl(testObjControl);
         bulletAppState.getPhysicsSpace().add(testObjControl);
+        IATFileInterpreter iatfi = new IATFileInterpreter(IATFileInterpretMode.IATFILE_V1, rootNode, assetManager, bulletAppState);
+        iatfi.interpret("MapFiles/TestMap.iat");
         //Set Camera Fly Speed
         flyCam.setMoveSpeed(20);
     }
@@ -951,6 +964,187 @@ class Utils {
             request.setHeader("Authorization", "Bearer " + API_KEY);
             return client.execute(request, response -> EntityUtils.toString(response.getEntity())); 
         }
+    }
+}
+class IATFileInterpreter {
+    /**The Interpret Succeeded */
+    public int SUCCESS = 0;
+    /**The Interpret Failed */
+    public int FAILURE = 1;
+    public String ifim;
+    private Node rNode;
+    private AssetManager assetManager;
+    private BulletAppState bulletAppState;
+    /**All Different Interpret Modes For IATFileInterpreter */
+    enum IATFileInterpretMode {
+        /**The First Version Of IATFile.*/
+        IATFILE_V1,
+        /**The Second Version Of IATFile. (Shouldn't Be Used) */
+        IATFILE_V2
+    }
+    /**
+     * Constructs An IATFileInterpreter.
+     * @param ifim The Interpret Mode
+     * @param rNode The Root Node, For Placing Objects
+     */
+    public IATFileInterpreter(IATFileInterpretMode ifim, Node rNode, AssetManager assetManager, BulletAppState bulletAppState) {
+        this.rNode = rNode;
+        this.assetManager = assetManager;
+        this.bulletAppState = bulletAppState;
+        if(ifim == IATFileInterpretMode.IATFILE_V1) {
+            this.ifim = "IAT_V1";
+        } else if(ifim == IATFileInterpretMode.IATFILE_V2) {
+            this.ifim = "IAT_V2";
+        } else {
+            throw new IllegalArgumentException("Error: IFIM Does Not Match Any Version");
+        }
+    }
+    /**
+     * Interprets An IAT File
+     * @param fileName The Name Of The File To Interpret
+     * @return An Int, Representing The Status. 0 = Success. 1 = Failure.
+     * @author IDEKanymoreTBH On Github
+     */
+    public int interpret(String fileName) {
+        //Checks If File Type Is IAT
+        if(!fileName.endsWith(".iat")) {
+            System.out.println("Error: Document '" + fileName + "' Is Not Of Type: IAT");
+            return FAILURE;
+        }
+        //Path path = Paths.get(fileName);
+        Path path;
+        try {
+            path = Path.of(getClass().getClassLoader().getResource("MapFiles/TestMap.iat").toURI());
+        } catch(URISyntaxException err) {
+            err.printStackTrace();
+            System.out.println("Error: Path To File Is Invalid");
+            return FAILURE;
+        }
+        System.out.println("Path: " + path.toString());
+        Object[] t;
+        try {
+            t = Files.readAllLines(path, StandardCharsets.UTF_8).toArray();
+        } catch(IOException err) {
+            err.printStackTrace();
+            System.out.println("Error: Malformed Or Unreadable Bytes Found In: " + fileName);
+            return FAILURE;
+        }
+        Object[] objs;
+        ArrayList<String> temp = new ArrayList<>();
+        for(Object o : t) {
+            if(!(((String)o).isBlank() || ((String)o).isEmpty())) {
+                temp.add(o.toString());
+            }
+        }
+        objs = temp.toArray();
+        //Checks If File Is Not IAT
+        System.out.println(objs[0]);
+        if(!objs[0].equals("<DocType DocType.IAT>")) {
+            System.out.println("Error: No Document Type Declaration Found");
+            return FAILURE;
+        }
+        //Checks For IATVersion Mismatch
+        if((objs[1].equals("<IATVersion 1.0.0>") && this.ifim.equals("IAT_V2")) || (objs[1].equals("<IATVersion 2.0.0>") && this.ifim.equals("IAT_V1"))) {
+            System.out.println("Error: Internal Version Is: " + this.ifim + " But IAT File Was Written In Type: " + objs[1]);
+            return FAILURE;
+        }
+        //Checks For IATVersion 2
+        if(objs[1].equals("<IATVersion 2.0.0>")) {
+            System.out.println("Error: IAT Versions 2.0.0+ Are Not Supported. Please Use IAT Version 1.0.0");
+            return FAILURE;
+        }
+        //Checks If File Has Start And End Of Doc
+        if(!(objs[2].equals("#StartDoc") && objs[objs.length - 1].equals("#EndDoc"))) {
+            System.out.println("Error: IATFile Must Have Both A Start And An End To The Document. Check If Your File Has '#StartDoc' And '#EndDoc'");
+            return FAILURE;
+        }
+        Object[] temp2 = Arrays.copyOfRange(objs, 2, objs.length - 1);
+        for(int i = 1; i < temp2.length; i++) {
+            if(temp2[i].toString().startsWith("ObjCreator.create('") && temp2[i].toString().endsWith(");")) {
+                IATFileInterpreter.CMDGenerateObject(temp2[i].toString(), this.assetManager, this.bulletAppState, this.rNode);
+            } else if(temp2[i].toString().startsWith("IATPrintStream.printf('") && temp2[i].toString().endsWith("');")) {
+                IATFileInterpreter.CMDPrint(temp2[i].toString().substring(temp2[i].toString().indexOf("printf('") + 8, temp2[i].toString().indexOf("');")));
+            } else if(temp2[i].toString().startsWith("IATSystemManager.crash('") && temp2[i].toString().endsWith("');")) {
+                IATFileInterpreter.CMDCrash(temp2[i].toString().substring(temp2[i].toString().indexOf("crash('") + 7, temp2[i].toString().indexOf("');")));
+            } else {
+                //Syntax Error
+                System.out.println(String.format("Error: Line %d From: '%s' Is Not Any Recognized Command, Or Has A Syntax Error.", i + 2, fileName));
+                return FAILURE;
+            }
+        }
+        return SUCCESS;
+    }
+    /**
+     * Prints From The Commands Inside An IATFile
+     * @param text The Text To Print
+     */
+    private static void CMDPrint(String text) {
+        System.out.println("Output From [IATFile]: " + text);
+    }
+    /**
+     * Generates An Object Based On The IATFile Stuff.
+     */
+    private static Object CMDGenerateObject(String interpreterObjThing, AssetManager am, BulletAppState bas, Node rNode) {
+        System.out.println(interpreterObjThing);
+        int startI = interpreterObjThing.indexOf("'") + 1;
+        int endI = interpreterObjThing.lastIndexOf("'");
+        String temp = interpreterObjThing.substring(startI, endI);
+        int[] actualPositions = new int[6];
+        System.out.println(temp);
+        if(temp.equals("Geometry")) {
+            ArrayList<Character> chars = new ArrayList<>();
+            for (int i = 0; i < interpreterObjThing.toCharArray().length; i++) {
+                if(i > 29 && (((Character)interpreterObjThing.charAt(i)).equals('-') || ((Character)interpreterObjThing.charAt(i)).equals(',') || Character.isDigit(interpreterObjThing.charAt(i)))) {
+                    chars.add(interpreterObjThing.charAt(i));
+                }
+            }
+            for (int j = 0; j < actualPositions.length; j++) {
+                System.out.println("Chars: " + chars.toString());
+                String temp2 = "";
+                for (int i = 0; i < chars.size(); i++) {
+                    System.out.println(chars.get(i));
+                    if(chars.get(i).equals('-') || Character.isDigit(chars.get(i))) {
+                        temp2 = temp2.concat(chars.get(i).toString());
+                    } else {
+                        break;
+                    }
+                }
+                System.out.println(temp2);
+                for (int i = 0; i < temp2.length() + 1; i++) {
+                    if(chars.size() == 1) {
+                        break;
+                    }
+                    chars.remove(0);
+                }
+                System.out.println(chars);
+                actualPositions[j] = Integer.parseInt(temp2);
+            }
+            System.out.println(Arrays.toString(actualPositions));
+            Geometry geo = new Geometry("Geometry At X: " + Integer.toString(actualPositions[0]) + ", Y: " + Integer.toString(actualPositions[1]) + ", Z: " + Integer.toString(actualPositions[2]), new Box(actualPositions[3]/2, actualPositions[4]/2, actualPositions[5]/2));
+            geo.setLocalTranslation(actualPositions[0], actualPositions[1], actualPositions[2]);
+            Material mat = new Material(am, "Common/MatDefs/Light/Lighting.j3md");
+            geo.setShadowMode(ShadowMode.CastAndReceive);
+            mat.setBoolean("UseMaterialColors", true);
+            mat.setColor("Diffuse", ColorRGBA.Gray);
+            mat.setTexture("DiffuseMap", am.loadTexture("Textures/AdhesiveBlock.png"));
+            geo.setMaterial(mat);
+            rNode.attachChild(geo);
+            RigidBodyControl physics = new RigidBodyControl(new BoxCollisionShape(new Vector3f(actualPositions[3]/2, actualPositions[4]/2, actualPositions[5]/2)), 0f);
+            geo.addControl(physics);
+            bas.getPhysicsSpace().add(physics);
+            return geo;
+        } else {
+            System.out.println("Error: Tried To Create An Object Of Type 'Non-Existant'");
+            return "Error";
+        }
+    }
+    /**
+     * You Only Use This Method To Crash The Game. Not Very Good...
+     * @param actualText The Text For The RuntimeException
+     * @throws RuntimeException Thrown Everytime
+     */
+    private static void CMDCrash(String actualText) throws RuntimeException{
+        throw new RuntimeException("Error Thrown From [IATFile]: " + actualText);
     }
 }
 //To Compile This, First Get It Into A Fat JAR Using ShadowJar, Then Do:

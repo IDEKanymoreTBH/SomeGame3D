@@ -1,0 +1,6 @@
+<DocType DocType.IAT>
+<IATVersion 1.0.0>
+#StartDoc
+ObjCreator.create('Geometry', -10, 5, 5, 2, 2, 2);
+ObjCreator.create('Geometry', -10, 5, 10, 2, 2, 2);
+#EndDoc
