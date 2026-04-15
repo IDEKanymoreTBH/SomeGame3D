@@ -36,11 +36,14 @@ The Parameters Are As Follows:
 - l: The Total Length Of The Object
 
 <br></br>Another Common Method Is The Print. That Is This:<br></br>
-`IATPrintStream.printf(text)`<br></br>
+`IATPrintStream.printf(text);`<br></br>
 The 'text' Parameter Is The Only One. Text Must Be Circle In Single-Quotes To Work.<br></br><br></br>
 The Final Method Is:<br></br>
-`IATSystemManager.crash(message)`<br></br>
-Here, The 'message' Parameter Is The Message Displayed By The Exception Thrown. Use Single-Quotes.
+`IATSystemManager.crash(message);`<br></br>
+Here, The 'message' Parameter Is The Message Displayed By The Exception Thrown. Use Single-Quotes.<br></br><br></br>
+[NEW] A Method To Use Alongside The Object One Is The Set Texture Method. To Use It, Simply Type:<br></br>
+`ObjCreator.setTexture(text);`<br></br>
+Here, The Text Parameter Represents The Path To The Texture You Desire. This Must Be Called Before Doing ANY Creation. Blocks Created Before The First Set Texture Will Be Invisible Because The Initial Texture Is Null.
 ## Patch Notes:
 - v0.0.1 Beta:
     - Implemented An Early Map
@@ -87,3 +90,5 @@ Here, The 'message' Parameter Is The Message Displayed By The Exception Thrown. 
     - There Is Some More Documentation
     - I Added Some Hands To The GUI
     - [Added An Entire Markdown For A Single File Type](#the-iat-file-stuff)
+- v0.1.8:
+    - Added Some More Stuff To The IAT File Syntax.
