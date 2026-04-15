@@ -481,7 +481,7 @@ public class App extends SimpleApplication implements ActionListener {
                 screen.addElement(albx);
                 albx.show();
             }
-            if(inputManager.getCursorPosition().x >= 770.0f && inputManager.getCursorPosition().x <= 1142.0f && inputManager.getCursorPosition().y <= 414.0f && inputManager.getCursorPosition().y >= 295.0f && isInMainMenu) {
+            if(inputManager.getCursorPosition().x >= 777.0f && inputManager.getCursorPosition().x <= 1142.0f && inputManager.getCursorPosition().y <= 419.0f && inputManager.getCursorPosition().y >= 299.0f && isInMainMenu) {
                 //Settings
                 isInSettings = true;
                 isInMainMenu = false;
