@@ -71,36 +71,64 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.awt.GraphicsEnvironment;
-
+/**The Main App That Does Everything */
 public class App extends SimpleApplication implements ActionListener {
+    /**Controls The Interactions A Player Can Do */
     public InteractionController intCont;
     //Global Values
+    /**The Players Stamina */
     public int stamina = 100;
+    /**The Physics Controller For The Entire App Basically */
     public BulletAppState bulletAppState; //Physics Controller
+    /**The Player's Controller That Lets It Move Around */
     public BetterCharacterControl playerControl; //Controls Player's Physics
+    /**The Node The Player Is On */
     public Node playerNode; // Node For Player
+    /**Self Explanatory */
     public boolean moveForward = false; 
+    /**Self Explanatory */
     public boolean moveBackwards = false;
+    /**Self Explanatory */
     public boolean jump = false;
+    /**The Actual Player Object */
     public Spatial playerSpatial; //The actual Player object
+    /**Toggles Whether The FPS Is Shown */
     public boolean fpsShown = false;
+    /**Self Explanatory */
     public boolean strafeLeft = false;
+    /**Self Explanatory */
     public boolean strafeRight = false;
+    /**The Walking Direction For The Player */
     public Vector3f walkDir = new Vector3f();
+    /**The Desired Direction For The Player */
     public Vector3f desiredDir = new Vector3f();
+    /**The Walking Direction Multilpier. Increases When Sprinting */
     public float walkDirMult = 4f;
+    /**Self Explanatory */
     public boolean isInMainMenu = true;
+    /**Self Explanatory */
     public boolean isInSettings = false;
+    /**Self Explanatory */
     public boolean isInPatchNotes = false;
+    /**Self Explanatory */
     public boolean isInSettingsOptions = false;
+    /**Self Explanatory */
     public boolean isInSettingsKeyBinds = false;
+    /**Self Explanatory */
     public boolean isInSettingsDebugOptions = false;
+    /**Self Explanatory */
     public boolean flyHacksEnabled = false;
+    /**Counts Up Until A Certain Amount, Then Decreases The Stamina.*/
     public int staminaDecreaseCounter = 0;
+    /**Counts Up To A Certain Amount, Then Increases The Stamina */
     public int staminaIncreaseCounter = 0;
+    /**Self Explanatory */
     public boolean isInteractingWithShop1 = false;
+    /**Self Explanatory */
     public boolean canMove = true;
+    /**Self Explanatory */
     public boolean isInPauseMenu = false;
+    /**An Old Stat That Used To Be Used*/
     public int developedProducts = 0;
     //All GUI Elements(Menus, UI, Etc)
     Picture mainMenu;
@@ -946,6 +974,12 @@ class Utils {
             //Load Some Random Map IDK
         }
     }
+    /**
+     * A Method I Intend To Use At Some Point...
+     * @param keyVal The Value To Put Into The Database
+     * @return The Http Response
+     * @throws Exception Yeah A Lot Of Things Can Throw An Exception
+     */
     public String insert(String keyVal) throws Exception {
         try(CloseableHttpClient client = HttpClients.createDefault()) {
             HttpPost request = new HttpPost(PROJECT_URL);
@@ -957,6 +991,11 @@ class Utils {
             return client.execute(request, response -> EntityUtils.toString(response.getEntity()));
         }
     }
+    /**
+     * Another Method I Intend To Use Someday...
+     * @return The Response
+     * @throws Exception If Something Goes Wrong
+     */
     public String getAll() throws Exception {
         try(CloseableHttpClient client = HttpClients.createDefault()) {
             HttpGet request = new HttpGet(PROJECT_URL);
