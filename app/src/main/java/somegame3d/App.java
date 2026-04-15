@@ -1126,7 +1126,10 @@ class IATFileInterpreter {
             geo.setShadowMode(ShadowMode.CastAndReceive);
             mat.setBoolean("UseMaterialColors", true);
             mat.setColor("Diffuse", ColorRGBA.Gray);
-            mat.setTexture("DiffuseMap", am.loadTexture("Textures/AdhesiveBlock.png"));
+            Texture tex = am.loadTexture("Textures/AdhesiveBlock.png");
+            tex.setMagFilter(Texture.MagFilter.Nearest);
+            tex.setMinFilter(Texture.MinFilter.Trilinear);
+            mat.setTexture("DiffuseMap", tex);
             geo.setMaterial(mat);
             rNode.attachChild(geo);
             RigidBodyControl physics = new RigidBodyControl(new BoxCollisionShape(new Vector3f(actualPositions[3]/2, actualPositions[4]/2, actualPositions[5]/2)), 0f);
