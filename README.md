@@ -4,6 +4,43 @@ A Random Game That I May Or May Not Finish
 
 So, This Game I Made. Still Isn't Done. IDK. Maybe You Can Be The One To Pitch In?
 
+## The IAT File Stuff:
+So, I Made This Random Thing Where You Can Basically Make A Map Out Of Typing Stuff. It Has Very Rudimental Things Right Now, But Still Has Some Features. Here Are Some:
+
+### Rudimentary Syntax:
+First, Each File Must Start With A Document Type Declaration. The Way To Do This Is As Follows:<br></br>
+`<DocType DocType.IAT>`<br></br>
+Do Note That Failing To Type This EXACT String At The Very Top Of The File Will Result In A Failure.<br></br><br></br>
+Also, Each File Must Have A Version Declaration. They Go Like This:<br></br>
+`<IATVersion 1.0.0>`<br></br>
+Please Type This Exactly. The Interpreter Isn't That Good Right Now :(<br></br><br></br>
+Finally, Each File Should Contain A Start And End To The Doc. This Is Done With `#StartDoc` And `#EndDoc`:<br></br>
+```
+#StartDoc
+[Your Code Goes Here]
+#EndDoc
+```
+<br></br>
+### Basic Methods:
+Right Now, We Really Have Only Three Things:
+
+You Can Create Objects Using This Format:<br></br>
+`ObjCreator.create(type, x, y, z, w, h, l);`<br></br>
+The Parameters Are As Follows:
+- type: The Type To Create. Right Now, Only 'Geometry' Works.
+- x: The X Position To Place This Object
+- y: The Y Position To Place This Object
+- z: The Z Position To Place This Object
+- w: The Total Width Of The Object
+- h: The Total Height Of The Object
+- l: The Total Length Of The Object
+
+<br></br>Another Common Method Is The Print. That Is This:<br></br>
+`IATPrintStream.printf(text)`<br></br>
+The 'text' Parameter Is The Only One. Text Must Be Circle In Single-Quotes To Work.<br></br><br></br>
+The Final Method Is:<br></br>
+`IATSystemManager.crash(message)`<br></br>
+Here, The 'message' Parameter Is The Message Displayed By The Exception Thrown. Use Single-Quotes.
 ## Patch Notes:
 - v0.0.1 Beta:
     - Implemented An Early Map
