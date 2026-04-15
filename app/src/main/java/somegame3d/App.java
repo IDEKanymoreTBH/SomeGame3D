@@ -15,6 +15,7 @@ import org.apache.hc.core5.http.io.entity.StringEntity;
 import com.jme3.app.SimpleApplication;
 import com.jme3.asset.AssetManager;
 import com.jme3.asset.AssetNotFoundException;
+import com.jme3.light.DirectionalLight;
 import com.jme3.light.SpotLight;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
@@ -57,18 +58,13 @@ import tonegod.gui.core.Screen;
 import com.jme3.scene.control.BillboardControl;
 import com.jme3.font.BitmapFont;
 import com.jme3.font.BitmapText;
-import com.jme3.font.BitmapFont.Align;
 import com.jme3.post.ssao.SSAOFilter;
 import com.jme3.post.FilterPostProcessor;
-
-import java.awt.Toolkit;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.awt.GraphicsEnvironment;
 /**The Main App That Does Everything */
 public class App extends SimpleApplication implements ActionListener {
     /**Controls The Interactions A Player Can Do */
@@ -135,11 +131,10 @@ public class App extends SimpleApplication implements ActionListener {
     Picture optionsGUI;
     Picture debugOptionsGUI;
     Picture staminaBar = new Picture("StaminaBar");
-    Picture devBar = new Picture("DevelopedBar");
     BitmapFont font;
     BitmapText text;
-    BitmapText devText;
     SpotLight flashlight;
+    DirectionalLight sun;
     Picture interactGui = new Picture("Interact_Gui");
     Picture shop1Gui = new Picture("Shop1GUI");
     Picture cursor;
@@ -188,12 +183,6 @@ public class App extends SimpleApplication implements ActionListener {
         text.setLocalTranslation(260, settings.getHeight() - 15, 0);
         text.setColor(ColorRGBA.Black);
         guiNode.attachChild(text);
-        devText = new BitmapText(font);
-        devText.setSize(guiFont.getCharSet().getRenderedSize() + 10);
-        devText.setText(Integer.toString(developedProducts));
-        devText.setLocalTranslation(100, 40, 0);
-        devText.setColor(ColorRGBA.Black);
-        guiNode.attachChild(devText);
         mainMenu = new Picture("Main_Menu");
         mainMenu.setImage(assetManager, "Textures/MainMenu.png", true);
         mainMenu.setWidth(settings.getWidth());
@@ -209,11 +198,6 @@ public class App extends SimpleApplication implements ActionListener {
         staminaBar.setHeight(791.015625f);
         staminaBar.setPosition(0, 410);
         guiNode.attachChild(staminaBar);
-        devBar.setImage(assetManager, "Textures/Developed.png", true);
-        devBar.setWidth(1009);
-        devBar.setHeight(791.015625f);
-        devBar.setPosition(0, 0);
-        guiNode.attachChild(devBar);
         interactGui.setImage(assetManager, "Textures/InteractGUI.png", true);
         interactGui.setWidth(2000);
         interactGui.setHeight(1000);
@@ -242,6 +226,10 @@ public class App extends SimpleApplication implements ActionListener {
         flashlight.setSpotInnerAngle(8f * FastMath.DEG_TO_RAD);
         flashlight.setSpotOuterAngle(16f * FastMath.DEG_TO_RAD);
         rootNode.addLight(flashlight);
+        sun = new DirectionalLight();
+        sun.setColor(ColorRGBA.White.mult(5f));
+        sun.setDirection(new Vector3f(0, -1, 0));
+        rootNode.addLight(sun);
         //Shadow Renderer
         SpotLightShadowRenderer slsr = new SpotLightShadowRenderer(assetManager, 4096);
         slsr.setLight(flashlight);
@@ -262,7 +250,7 @@ public class App extends SimpleApplication implements ActionListener {
         testGui.setPosition(0, 0);
         //Floor
         gen = new RoomGenerator(assetManager, rootNode, bulletAppState);
-        gen.generateStarterRoom();
+        //gen.generateStarterRoom();
         //Player(Not Gonna Have A Model Until Needed)
         playerSpatial = new Geometry("Box", new Box(0, 0, 0));
         Material playerMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
@@ -283,7 +271,7 @@ public class App extends SimpleApplication implements ActionListener {
         float radius = 0.5f * scale;
         float mass = 80f;
         playerControl = new BetterCharacterControl(radius, capsuleHeight, mass);
-        playerControl.setJumpForce(new Vector3f(0, 450, 0));
+        playerControl.setJumpForce(new Vector3f(0, 350, 0));
         playerNode.addControl(playerControl);
         bulletAppState.getPhysicsSpace().add(playerControl);
 
@@ -333,7 +321,6 @@ public class App extends SimpleApplication implements ActionListener {
         flashlight.setPosition(cam.getLocation());
         flashlight.setDirection(cam.getDirection().normalize());
         guiNode.attachChild(staminaBar);
-        guiNode.attachChild(devBar);
         guiNode.attachChild(testGui);
         if(walkDirMult == 10f && (moveForward || moveBackwards || strafeLeft || strafeRight)) {
             if(staminaDecreaseCounter == 7) {
@@ -357,8 +344,6 @@ public class App extends SimpleApplication implements ActionListener {
         }
         text.setText(Integer.toString(stamina));
         guiNode.attachChild(text);
-        devText.setText(Integer.toString(developedProducts));
-        guiNode.attachChild(devText);
         desiredDir.set(0, 0, 0);
         if (moveForward) {
             desiredDir.addLocal(new Vector3f(cam.getDirection().x, 0, cam.getDirection().z));
@@ -570,6 +555,7 @@ public class App extends SimpleApplication implements ActionListener {
             System.out.println(Float.toString(inputManager.getCursorPosition().x).concat(", ").concat(Float.toString(inputManager.getCursorPosition().y)));
         } else if (name.equals("SnapshotCoords")) {
             developedProducts++;
+            System.out.println("Cam Direction: " + cam.getDirection().toString());
             //System.out.println(Float.toString(playerSpatial.getWorldTranslation().x).concat(", ").concat(Float.toString(playerSpatial.getWorldTranslation().y)).concat(", ").concat(Float.toString(playerSpatial.getWorldTranslation().z)));
         } else if (name.equals("Pause") && isPressed) {
             if(!isInPauseMenu) {
@@ -658,7 +644,6 @@ class RoomGenerator{
      */
     public void generateStarterRoom() {
         //Create Geometry Objects
-        Geometry floorGeom = new Geometry("Floor", new Box(10, 1, 10));
         Geometry floorGeom2 = new Geometry("Floor2", new Box(10, 1, 10));
         floorGeom3 = new Geometry("Floor3", new Box(10, 1, 10));
         Geometry floorGeom4 = new Geometry("Floor4", new Box(10, 1, 10));
@@ -667,7 +652,6 @@ class RoomGenerator{
         Geometry starterWallGeometry2 = new Geometry("Wall2", new Box(9, 10, 1));
         //Translates The Objects
         starterWallGeometry.setLocalTranslation(10, 8, 0);
-        floorGeom.setLocalTranslation(0, -1, 0);
         floorGeom2.setLocalTranslation(10, -1, 0);
         floorGeom3.setLocalTranslation(-10, -1f, 0);
         floorGeom4.setLocalTranslation(0, -1, 10);
@@ -679,7 +663,6 @@ class RoomGenerator{
         Material floorMat = new Material(this.assetManager, "Common/MatDefs/Light/Lighting.j3md");
         Material wallMat = new Material(this.assetManager, "Common/MatDefs/Light/Lighting.j3md");
         //Add Shadow Stuff
-        floorGeom.setShadowMode(RenderQueue.ShadowMode.Receive);
         floorGeom2.setShadowMode(RenderQueue.ShadowMode.Receive);
         floorGeom3.setShadowMode(RenderQueue.ShadowMode.Receive);
         floorGeom4.setShadowMode(RenderQueue.ShadowMode.Receive);
@@ -696,7 +679,6 @@ class RoomGenerator{
         //Textures The Materials
         wallMat.setTexture("DiffuseMap", this.assetManager.loadTexture("Textures/WallTexture.png"));
         //Attaches The Material To It's Geometry
-        floorGeom.setMaterial(floorMat);
         floorGeom2.setMaterial(floorMat);
         floorGeom3.setMaterial(floorMat);
         floorGeom4.setMaterial(floorMat);
@@ -704,7 +686,6 @@ class RoomGenerator{
         starterWallGeometry.setMaterial(wallMat);
         starterWallGeometry2.setMaterial(wallMat);
         //Attach The Geometry Object To The RootNode
-        this.rootNode.attachChild(floorGeom);
         this.rootNode.attachChild(floorGeom2);
         this.rootNode.attachChild(floorGeom3);
         this.rootNode.attachChild(floorGeom4);
@@ -712,7 +693,6 @@ class RoomGenerator{
         this.rootNode.attachChild(starterWallGeometry);
         this.rootNode.attachChild(starterWallGeometry2);
         //Creates The RigidBodyControl For The Geometry
-        RigidBodyControl floorPhysics = new RigidBodyControl(new BoxCollisionShape(new Vector3f(10, 1, 10)), 0f);
         RigidBodyControl floorPhysics2 = new RigidBodyControl(new BoxCollisionShape(new Vector3f(10, 1, 10)), 0f);
         floorPhysics3 = new RigidBodyControl(new BoxCollisionShape(new Vector3f(10, 1, 10)), 0f);
         RigidBodyControl floorPhysics4 = new RigidBodyControl(new BoxCollisionShape(new Vector3f(10, 1, 10)), 0f);
@@ -720,7 +700,6 @@ class RoomGenerator{
         RigidBodyControl starterWallPhysics = new RigidBodyControl(new BoxCollisionShape(new Vector3f(((Box) starterWallGeometry.getMesh()).getXExtent(), 10, ((Box) starterWallGeometry.getMesh()).getZExtent())), 0f);
         RigidBodyControl starterWall2Physics = new RigidBodyControl(new BoxCollisionShape(new Vector3f(((Box) starterWallGeometry2.getMesh()).getXExtent(), 10, ((Box) starterWallGeometry2.getMesh()).getZExtent())), 0f);
         //Attaches The Control To Their Objects
-        floorGeom.addControl(floorPhysics);
         floorGeom2.addControl(floorPhysics2);
         floorGeom3.addControl(floorPhysics3);
         floorGeom4.addControl(floorPhysics4);
@@ -728,7 +707,6 @@ class RoomGenerator{
         starterWallGeometry.addControl(starterWallPhysics);
         starterWallGeometry2.addControl(starterWall2Physics);
         //Adds The Physics Control To BulletAppState
-        this.bulletAppState.getPhysicsSpace().add(floorPhysics);
         this.bulletAppState.getPhysicsSpace().add(floorPhysics2);
         this.bulletAppState.getPhysicsSpace().add(floorPhysics3);
         this.bulletAppState.getPhysicsSpace().add(floorPhysics4);
