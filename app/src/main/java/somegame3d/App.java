@@ -12,8 +12,6 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
-
-import com.google.common.hash.HashFunction;
 import com.jme3.app.SimpleApplication;
 import com.jme3.asset.AssetManager;
 import com.jme3.asset.AssetNotFoundException;
@@ -31,10 +29,7 @@ import com.jme3.system.AppSettings;
 import com.jme3.texture.Texture;
 import com.jme3.ui.Picture;
 import com.simsilica.lemur.GuiGlobals;
-
-import groovyjarjarantlr4.v4.parse.ANTLRParser.terminal_return;
 import somegame3d.IATFileInterpreter.IATFileInterpretMode;
-
 import com.jme3.material.Material;
 import com.jme3.material.RenderState;
 import com.jme3.material.RenderState.FaceCullMode;
@@ -55,7 +50,6 @@ import com.jme3.bullet.collision.shapes.BoxCollisionShape;
 import com.jme3.bullet.control.BetterCharacterControl;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.collision.CollisionResults;
-
 import tonegod.gui.controls.windows.AlertBox;
 import tonegod.gui.core.Screen;
 import com.jme3.scene.control.BillboardControl;
@@ -954,7 +948,7 @@ class Utils {
      * @see BlockID
      */
     public void placeBlock(int x, int y, int z, int width, int length, int height, BlockID bid) {
-        Geometry blockGeom = new Geometry();
+        //Geometry blockGeom = new Geometry();
     }
     public void createMap(String toCreate) {
         if(toCreate.equals("StoryMap")) {
@@ -1106,11 +1100,11 @@ class IATFileInterpreter {
                 } else {
                     textureToUse = IATFileInterpreter.CMDChangeTexture(temp2[i].toString(), this.assetManager);
                 }
-            } else if(temp2[i].toString().startsWith("ObjCreator.createMoveable('") && temp2[i].toString().endsWith(");")) {
-                if(IATFileInterpreter.CMDGenerateMovingObj(temp2[i].toString(), this.assetManager, this.bulletAppState, this.rNode).equals("Error")) {
-                    System.out.println("An Error Occured Making A Moving Platform");
-                }
-            } else {
+            } //else if(temp2[i].toString().startsWith("ObjCreator.createMoveable('") && temp2[i].toString().endsWith(");")) {
+                //if(IATFileInterpreter.CMDGenerateMovingObj(temp2[i].toString(), this.assetManager, this.bulletAppState, this.rNode).equals("Error")) {
+                    //System.out.println("An Error Occured Making A Moving Platform");
+                //}
+            /*}*/ else {
                 //Syntax Error
                 System.out.println(String.format("Error: Line %d From: '%s' Is Not Any Recognized Command, Or Has A Syntax Error.", i + 2, fileName));
                 return FAILURE;
@@ -1200,63 +1194,63 @@ class IATFileInterpreter {
             return null;
         }
     }
-    private static String CMDGenerateMovingObj(String interpretText, AssetManager am, BulletAppState bas, Node rootNode) {
-        int startI = interpretText.indexOf("'") + 1;
-        int endI = interpretText.lastIndexOf("'");
-        String temp = interpretText.substring(startI, endI);
-        int[] actualPositions = new int[6];
-        if(temp.equals("Geometry")) {
-            ArrayList<Character> chars = new ArrayList<>();
-            for (int i = 0; i < interpretText.toCharArray().length; i++) {
-                if(i > 37 && (((Character)interpretText.charAt(i)).equals('-') || ((Character)interpretText.charAt(i)).equals(',') || Character.isDigit(interpretText.charAt(i)))) {
-                    chars.add(interpretText.charAt(i));
-                }
-            }
-            for (int j = 0; j < actualPositions.length; j++) {
-                String temp2 = "";
-                System.out.println("Chars: [Moving OBJ]: " + chars);
-                for (int i = 0; i < chars.size(); i++) {
-                    if(chars.get(i).equals('-') || Character.isDigit(chars.get(i))) {
-                        temp2 = temp2.concat(chars.get(i).toString());
-                    } else {
-                        break;
-                    }
-                }
-                for(int i = 0; i < temp2.length() + 1; i++) {
-                    if(chars.size() == 1) {
-                        break;
-                    }
-                    chars.remove(0);
-                }
-                System.out.println("Temporary String 2 [Moving Object Wise]: " + temp2);
-                actualPositions[j] = Integer.parseInt(temp2);
-            }
-            System.out.println("Moving Platform's Positions: " + Arrays.toString(actualPositions));
-            Geometry geo = new Geometry("Geometry At X: " + Integer.toString(actualPositions[0]) + ", Y: " + Integer.toString(actualPositions[1]) + ", Z: " + Integer.toString(actualPositions[2]), new Box(actualPositions[3]/2, actualPositions[4]/2, actualPositions[5]/2));
-            geo.setLocalTranslation(actualPositions[0], actualPositions[1], actualPositions[2]);
-            Material mat = new Material(am, "Common/MatDefs/Light/Lighting.j3md");
-            geo.setShadowMode(ShadowMode.CastAndReceive);
-            mat.setBoolean("UseMaterialColors", true);
-            mat.setColor("Diffuse", ColorRGBA.LightGray);
-            mat.setColor("Ambient", ColorRGBA.Gray);
-            Texture tex = IATFileInterpreter.textureToUse;
-            tex.setMagFilter(Texture.MagFilter.Nearest);
-            tex.setMinFilter(Texture.MinFilter.Trilinear);
-            mat.setTexture("DiffuseMap", tex);
-            geo.setMaterial(mat);
-            rootNode.attachChild(geo);
-            RigidBodyControl physics;
-            physics = new RigidBodyControl(new BoxCollisionShape(new Vector3f(actualPositions[3]/2, actualPositions[4]/2, actualPositions[5]/2)), 1f);
-            physics.setKinematic(true);
-            geo.addControl(physics);
-            bas.getPhysicsSpace().add(physics);
-            App.movingPlatforms.add(geo);
-            return "YAY";
-        } else {
-            System.out.println("Error From MovObj: Non-Existant Type Tried.");
-            return "Error";
-        }
-    }
+    // private static String CMDGenerateMovingObj(String interpretText, AssetManager am, BulletAppState bas, Node rootNode) {
+    //     int startI = interpretText.indexOf("'") + 1;
+    //     int endI = interpretText.lastIndexOf("'");
+    //     String temp = interpretText.substring(startI, endI);
+    //     int[] actualPositions = new int[6];
+    //     if(temp.equals("Geometry")) {
+    //         ArrayList<Character> chars = new ArrayList<>();
+    //         for (int i = 0; i < interpretText.toCharArray().length; i++) {
+    //             if(i > 37 && (((Character)interpretText.charAt(i)).equals('-') || ((Character)interpretText.charAt(i)).equals(',') || Character.isDigit(interpretText.charAt(i)))) {
+    //                 chars.add(interpretText.charAt(i));
+    //             }
+    //         }
+    //         for (int j = 0; j < actualPositions.length; j++) {
+    //             String temp2 = "";
+    //             System.out.println("Chars: [Moving OBJ]: " + chars);
+    //             for (int i = 0; i < chars.size(); i++) {
+    //                 if(chars.get(i).equals('-') || Character.isDigit(chars.get(i))) {
+    //                     temp2 = temp2.concat(chars.get(i).toString());
+    //                 } else {
+    //                     break;
+    //                 }
+    //             }
+    //             for(int i = 0; i < temp2.length() + 1; i++) {
+    //                 if(chars.size() == 1) {
+    //                     break;
+    //                 }
+    //                 chars.remove(0);
+    //             }
+    //             System.out.println("Temporary String 2 [Moving Object Wise]: " + temp2);
+    //             actualPositions[j] = Integer.parseInt(temp2);
+    //         }
+    //         System.out.println("Moving Platform's Positions: " + Arrays.toString(actualPositions));
+    //         Geometry geo = new Geometry("Geometry At X: " + Integer.toString(actualPositions[0]) + ", Y: " + Integer.toString(actualPositions[1]) + ", Z: " + Integer.toString(actualPositions[2]), new Box(actualPositions[3]/2, actualPositions[4]/2, actualPositions[5]/2));
+    //         geo.setLocalTranslation(actualPositions[0], actualPositions[1], actualPositions[2]);
+    //         Material mat = new Material(am, "Common/MatDefs/Light/Lighting.j3md");
+    //         geo.setShadowMode(ShadowMode.CastAndReceive);
+    //         mat.setBoolean("UseMaterialColors", true);
+    //         mat.setColor("Diffuse", ColorRGBA.LightGray);
+    //         mat.setColor("Ambient", ColorRGBA.Gray);
+    //         Texture tex = IATFileInterpreter.textureToUse;
+    //         tex.setMagFilter(Texture.MagFilter.Nearest);
+    //         tex.setMinFilter(Texture.MinFilter.Trilinear);
+    //         mat.setTexture("DiffuseMap", tex);
+    //         geo.setMaterial(mat);
+    //         rootNode.attachChild(geo);
+    //         RigidBodyControl physics;
+    //         physics = new RigidBodyControl(new BoxCollisionShape(new Vector3f(actualPositions[3]/2, actualPositions[4]/2, actualPositions[5]/2)), 1f);
+    //         physics.setKinematic(true);
+    //         geo.addControl(physics);
+    //         bas.getPhysicsSpace().add(physics);
+    //         App.movingPlatforms.add(geo);
+    //         return "YAY";
+    //     } else {
+    //         System.out.println("Error From MovObj: Non-Existant Type Tried.");
+    //         return "Error";
+    //     }
+    // }
     /**
      * You Only Use This Method To Crash The Game. Not Very Good...
      * @param actualText The Text For The RuntimeException
