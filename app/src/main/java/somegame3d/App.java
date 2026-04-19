@@ -1,5 +1,11 @@
 /*Ideas For Game:
  * - Final Idea: JBattle: JME Krunker Clone With Blocks To Place
+ * Class Ideas:
+ * Traveler: Nothing But Fists. Twice As Fast As Everyone Else.
+ * The Hyperborean Henchman: Uses Ice Spells To Destroy Opponents. Strongly Affected By The Boiling Befuddlement And RandEvents.Solar_Flare.
+ * Schwarzschild's Miscreant: Uses Black Holes And Wormholes To Defeat Opponents. Is Susceptible To His Own Attacks And Imaginary Numbers.
+ * The Torvald Turing Machine: Uses Linux Kernals And Git To Erase Enemies. Strongly Affected By RandEvents.Solar_Flare And Certain Technology.
+ * The Boiling Befuddlement: Uses Very Hot Things To Destroy Opponents. Strongly Affected By The Hyperborean Henchman And RandEvents.Snow.
 */
 package somegame3d;
 import java.util.ArrayList;
@@ -12,6 +18,8 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
+
+import com.github.javaparser.metamodel.OptionalProperty;
 import com.jme3.app.SimpleApplication;
 import com.jme3.asset.AssetManager;
 import com.jme3.asset.AssetNotFoundException;
@@ -40,6 +48,7 @@ import com.jme3.math.Ray;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.math.Vector4f;
+import com.jme3.renderer.Camera;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.renderer.queue.RenderQueue.ShadowMode;
 import com.jme3.input.*;
@@ -67,12 +76,10 @@ public class App extends SimpleApplication implements ActionListener {
     /**Controls The Interactions A Player Can Do */
     public InteractionController intCont;
     //Global Values
-    /**The Players Stamina */
-    public int stamina = 100;
     /**The Physics Controller For The Entire App Basically */
     public BulletAppState bulletAppState; //Physics Controller
-    /**The Player's Controller That Lets It Move Around */
-    public BetterCharacterControl playerControl; //Controls Player's Physics
+    /**The Player*/
+    PlayerObject player;
     /**The Node The Player Is On */
     public Node playerNode; // Node For Player
     /**Self Explanatory */
@@ -81,8 +88,6 @@ public class App extends SimpleApplication implements ActionListener {
     public boolean moveBackwards = false;
     /**Self Explanatory */
     public boolean jump = false;
-    /**The Actual Player Object */
-    public Spatial playerSpatial; //The actual Player object
     /**Toggles Whether The FPS Is Shown */
     public boolean fpsShown = false;
     /**Self Explanatory */
@@ -123,6 +128,7 @@ public class App extends SimpleApplication implements ActionListener {
     public int developedProducts = 0;
     /**The Moving Platforms List */
     public static ArrayList<Geometry> movingPlatforms = new ArrayList<>();
+    public static boolean isInStoryMode = false;
     //All GUI Elements(Menus, UI, Etc)
     Picture mainMenu;
     Picture settingsGUI;
@@ -156,6 +162,7 @@ public class App extends SimpleApplication implements ActionListener {
     }
     @Override
     public void simpleInitApp() {
+        player = new PlayerObject(new Geometry("Box", new Box(0, 0, 0)), new BetterCharacterControl(0.5f * 2.8f, 1.8f * 2.8f, 80f), new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md"), new TravelerClass("This Guy Just Punches People. Probably Not Very Effective...", "Textures.DEFAULT"));
         GuiGlobals.initialize(this);
         GuiGlobals.getInstance().setCursorEventsEnabled(false);
         screen = new Screen(this);
@@ -179,7 +186,7 @@ public class App extends SimpleApplication implements ActionListener {
         font = assetManager.loadFont("Interface/Fonts/Default.fnt");
         text = new BitmapText(font);
         text.setSize(guiFont.getCharSet().getRenderedSize() + 10);
-        text.setText(Integer.toString(stamina));
+        text.setText(Integer.toString(player.getStamina()));
         text.setLocalTranslation(260, settings.getHeight() - 15, 0);
         text.setColor(ColorRGBA.Black);
         guiNode.attachChild(text);
@@ -256,29 +263,17 @@ public class App extends SimpleApplication implements ActionListener {
         //Floor
         gen = new RoomGenerator(assetManager, rootNode, bulletAppState);
         //gen.generateStarterRoom();
-        //Player(Not Gonna Have A Model Until Needed)
-        playerSpatial = new Geometry("Box", new Box(0, 0, 0));
-        Material playerMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        playerSpatial.setMaterial(playerMat);
         //Wrap in Node
         playerNode = new Node("PlayerNode");
-        playerNode.attachChild(playerSpatial);
-
-        //Scale down model
-        float scale = 2.8f;
-        playerNode.setLocalScale(scale);
-
+        playerNode.attachChild(player.getSpatial());
+        //scale
+        playerNode.setLocalScale(2.8f);
         //Offset model so feet align with capsule
-        float capsuleHeight = 1.8f * scale;
-        playerSpatial.setLocalTranslation(0, capsuleHeight / 2, 0);
-
-        //BetterCharacterControl
-        float radius = 0.5f * scale;
-        float mass = 80f;
-        playerControl = new BetterCharacterControl(radius, capsuleHeight, mass);
-        playerControl.setJumpForce(new Vector3f(0, 350, 0));
-        playerNode.addControl(playerControl);
-        bulletAppState.getPhysicsSpace().add(playerControl);
+        float capsuleHeight = 1.8f * 2.8f;
+        player.getSpatial().setLocalTranslation(0, capsuleHeight / 2, 0);
+        player.getControl().setJumpForce(new Vector3f(0, 350, 0));
+        playerNode.addControl(player.getControl());
+        bulletAppState.getPhysicsSpace().add(player.getControl());
 
         //Position Player above floor
         playerNode.setLocalTranslation(0, capsuleHeight / 2 + 0.01f, 0);
@@ -331,24 +326,24 @@ public class App extends SimpleApplication implements ActionListener {
         if(walkDirMult == 10f && (moveForward || moveBackwards || strafeLeft || strafeRight)) {
             if(staminaDecreaseCounter == 7) {
                 staminaDecreaseCounter = 0;
-                stamina -= 1;
+                player.setStamina(player.getStamina() - 1);
             } else {
                 staminaDecreaseCounter++;
             }
         } else {
             if(staminaIncreaseCounter == 20) {
                 staminaIncreaseCounter = 0;
-                if(stamina < 100) {
-                    stamina += 1;
+                if(player.getStamina() < 100) {
+                    player.setStamina(player.getStamina() + 1);
                 }
             } else {
                 staminaIncreaseCounter++;
             }
         }
-        if(stamina <= 0) {
+        if(player.getStamina() <= 0) {
             walkDirMult = 4f;
         }
-        text.setText(Integer.toString(stamina));
+        text.setText(Integer.toString(player.getStamina()));
         guiNode.attachChild(text);
         desiredDir.set(0, 0, 0);
         if (moveForward) {
@@ -385,8 +380,8 @@ public class App extends SimpleApplication implements ActionListener {
             intCont.updateValue("Shop1.obj", false);
             intCont.updateValue("Block.test", false);
         }
-        float accel = playerControl.isOnGround() ? 6f : 1.5f;
-        float friction = playerControl.isOnGround() ? 4f : 0f;
+        float accel = player.getControl().isOnGround() ? 6f : 1.5f;
+        float friction = player.getControl().isOnGround() ? 4f : 0f;
         if(desiredDir.lengthSquared() > 0) {
             desiredDir.normalizeLocal();
             walkDir.interpolateLocal(desiredDir, accel * tpf);
@@ -398,13 +393,13 @@ public class App extends SimpleApplication implements ActionListener {
                 walkDir.subtractLocal(walkDir.normalize().mult(friction * tpf));
             }
         }
-        playerControl.setWalkDirection(new Vector3f(walkDir.x * walkDirMult, 0, walkDir.z * walkDirMult));
-        playerControl.setViewDirection(cam.getDirection());
+        player.getControl().setWalkDirection(new Vector3f(walkDir.x * walkDirMult, 0, walkDir.z * walkDirMult));
+        player.getControl().setViewDirection(cam.getDirection());
         if(!flyHacksEnabled) {
-            if(!playerControl.isDucked()) {
-                cam.setLocation(playerSpatial.getWorldTranslation().add(new Vector3f(0f, -2.8f, 0f)));
+            if(!player.getControl().isDucked()) {
+                cam.setLocation(player.getSpatial().getWorldTranslation().add(new Vector3f(0f, -2.8f, 0f)));
             } else {
-                cam.setLocation(playerSpatial.getWorldTranslation().add(new Vector3f(0f, -4.2f, 0f)));
+                cam.setLocation(player.getSpatial().getWorldTranslation().add(new Vector3f(0f, -4.2f, 0f)));
             }
         }
         //Below Controls How Far The Camera Can Tilt Up And Down
@@ -424,8 +419,8 @@ public class App extends SimpleApplication implements ActionListener {
             moveForward = isPressed;
         } else if (name.equals("Jump") && isPressed) {
             if(canMove) {
-                if (playerControl.isOnGround()) {
-                    playerControl.jump();
+                if (player.getControl().isOnGround()) {
+                    player.getControl().jump();
                 }
             } else if(!canMove && isInteractingWithShop1) {
                 if(developedProducts >= 15) {
@@ -451,13 +446,17 @@ public class App extends SimpleApplication implements ActionListener {
         } else if (name.equals("StrafeRight") && !isInMainMenu && !isInSettings && !isInSettingsKeyBinds && !isInSettingsOptions && !isInSettingsDebugOptions && canMove) {
             strafeRight = isPressed;
         } else if (name.equals("Sprint") && !isInMainMenu && !isInSettings && !isInSettingsKeyBinds && !isInSettingsOptions && !isInSettingsDebugOptions) {
-            walkDirMult = (isPressed && stamina > 0) ? 10f : 4f;
+            walkDirMult = (isPressed && player.getStamina() > 0) ? 10f : 4f;
         } else if (name.equals("Click") && isPressed) {
+            if(isInStoryMode) {
+                
+            }
             if(inputManager.getCursorPosition().x >= 777.0f && inputManager.getCursorPosition().x <= 1142.0f && inputManager.getCursorPosition().y <= 901.0f && inputManager.getCursorPosition().y >= 782.0f && isInMainMenu) {
                 //Story Mode
                 inputManager.setCursorVisible(false);
                 flyCam.setEnabled(true);
                 isInMainMenu = false;
+                isInStoryMode = true;
                 guiNode.detachAllChildren();
             }
             if(inputManager.getCursorPosition().x >= 777.0f && inputManager.getCursorPosition().x <= 1142.0f && inputManager.getCursorPosition().y <= 662.0f && inputManager.getCursorPosition().y >= 537.0f && isInMainMenu) {
@@ -584,7 +583,7 @@ public class App extends SimpleApplication implements ActionListener {
                 canMove = true;
             }
         } else if (name.equals("Crouch") && isPressed) {
-            playerControl.setDucked(!playerControl.isDucked());
+            player.getControl().setDucked(!player.getControl().isDucked());
         } else if (name.equals("Set_FlyHack") && isPressed) {
             flyHacksEnabled = !flyHacksEnabled;
             //Also will test cursor positioning
@@ -1258,6 +1257,63 @@ class IATFileInterpreter {
      */
     private static void CMDCrash(String actualText) throws RuntimeException{
         throw new RuntimeException("Error Thrown From [IATFile]: " + actualText);
+    }
+}
+/**This Interface Is Used For Every Class That A Player Can Select.*/
+interface IPlayerClass {
+    public String getDescription();
+    public String getTexturePath();
+    public void doPrimaryAttack();
+    public void doSecondaryAttack();
+}
+class TravelerClass implements IPlayerClass {
+    private String desc;
+    private String texturePath;
+    public TravelerClass(String desc, String texturePath) {
+        this.desc = desc;
+        this.texturePath = texturePath;
+    }
+    public String getDescription() {
+        return this.desc;
+    }
+    public String getTexturePath() {
+        return this.texturePath;
+    }
+    public void doPrimaryAttack() {
+        //Do Punch
+    }
+    public void doSecondaryAttack() {
+        //Do Nothing
+    }
+}
+class PlayerObject {
+    private Spatial playerSpatial;
+    private int stamina;
+    private BetterCharacterControl playerControl;
+    private Material playerMat;
+    private IPlayerClass pClass;
+    public PlayerObject(Spatial playerSpatial, BetterCharacterControl playerControl, Material playerMat, IPlayerClass pClass) {
+        this.playerSpatial = playerSpatial;
+        this.stamina = 100;
+        this.playerControl = playerControl;
+        this.playerMat = playerMat;
+        this.playerSpatial.setMaterial(this.playerMat);
+        this.pClass = pClass;
+    }
+    public int getStamina() {
+        return this.stamina;
+    }
+    public void setStamina(int newStamina) {
+        this.stamina = newStamina;
+    }
+    public Spatial getSpatial() {
+        return this.playerSpatial;
+    }
+    public BetterCharacterControl getControl() {
+        return this.playerControl;
+    }
+    public IPlayerClass getPlayerClass() {
+        return this.pClass;
     }
 }
 //To Compile This, First Get It Into A Fat JAR Using ShadowJar, Then Do:
