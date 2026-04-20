@@ -159,7 +159,7 @@ public class App extends SimpleApplication implements ActionListener {
     }
     @Override
     public void simpleInitApp() {
-        player = new PlayerObject(new Geometry("Box", new Box(0, 0, 0)), new BetterCharacterControl(0.5f * 2.8f, 1.8f * 2.8f, 80f), new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md"), TravelerClass.class);
+        player = new PlayerObject(new Geometry("Box", new Box(0, 0, 0)), new BetterCharacterControl(0.5f * 2.8f, 1.8f * 2.8f, 80f), new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md"), CompSciPlayerClass.class);
         GuiGlobals.initialize(this);
         GuiGlobals.getInstance().setCursorEventsEnabled(false);
         screen = new Screen(this);
@@ -252,8 +252,17 @@ public class App extends SimpleApplication implements ActionListener {
         ssao.setScale(0.5f);
         ssao.setBias(0.1f);
         viewPort.addProcessor(fpp);
+        System.out.println("PlayerClass Name: " + player.getPlayerClass().getName());
         //Test Thing
-        testGui.setImage(assetManager, "Textures/Hands.png", true);
+        String texturePath = switch(player.getPlayerClass().getName()) {
+            case "somegame3d.TravelerClass" -> new TravelerClass().getTexturePath();
+            case "somegame3d.ColdPlayerClass" -> new ColdPlayerClass().getTexturePath();
+            case "somegame3d.PhysicsPlayerClass" -> new PhysicsPlayerClass().getTexturePath();
+            case "somegame3d.CompSciPlayerClass" -> new CompSciPlayerClass().getTexturePath();
+            case "somegame3d.HotPlayerClass" -> new HotPlayerClass().getTexturePath();
+            default -> new TravelerClass().getTexturePath();
+        };
+        testGui.setImage(assetManager, texturePath, true);
         testGui.setWidth(settings.getWidth());
         testGui.setHeight(settings.getHeight());
         testGui.setPosition(0, 0);
@@ -1296,7 +1305,7 @@ class PhysicsPlayerClass implements IPlayerClass {
         return "Uses Physics (Such As Wormholes Or Black Hole Spawning Radii) To His Advantage. Not A Big Fan Of Imaginary Numbers.";
     }
     public String getTexturePath() {
-        //return "Textures/";
+        return "Textures/PhysicsHands.png";
     }
     public void doPrimaryAttack() {
         //Cycle Primary Attacks
@@ -1310,7 +1319,7 @@ class CompSciPlayerClass implements IPlayerClass {
         return "Uses His Git Versions And Linux Kernals To Destroy The Competition. Big Fan Of Imaginary Numbers, And Despiser Of Solar Flares.";
     }
     public String getTexturePath() {
-        //return "Textures/";
+        return "Textures/CompSciHands.png";
     }
     public void doPrimaryAttack() {
         //Cycle Primary Attacks
@@ -1324,7 +1333,7 @@ class HotPlayerClass implements IPlayerClass {
         return "Contains The Heat Of An Exploding Star Inside Of Him. Not A Fan Of The Cold.";
     }
     public String getTexturePath() {
-        //return "Textures/";
+        return "Textures/HotHands.png";
     }
     public void doPrimaryAttack() {
         //Cycle Primary Attacks
@@ -1361,6 +1370,9 @@ class PlayerObject {
     }
     public Class<? extends IPlayerClass> getPlayerClass() {
         return this.pClass;
+    }
+    public void setPlayerClass(Class<? extends IPlayerClass> newClass) {
+        this.pClass = newClass;
     }
 }
 //To Compile This, First Get It Into A Fat JAR Using ShadowJar, Then Do:
