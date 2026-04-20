@@ -1,5 +1,5 @@
 /*Ideas For Game:
- * - Final Idea: JBattle: JME Krunker Clone With Blocks To Place
+ * - Final Idea: JBattle: JME Krunker With Blocks To Place And Orbs To Throw
  * Class Ideas:
  * Traveler: Nothing But Fists. Twice As Fast As Everyone Else.
  * The Hyperborean Henchman: Uses Ice Spells To Destroy Opponents. Strongly Affected By The Boiling Befuddlement And RandEvents.Solar_Flare.
@@ -18,8 +18,6 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
-
-import com.github.javaparser.metamodel.OptionalProperty;
 import com.jme3.app.SimpleApplication;
 import com.jme3.asset.AssetManager;
 import com.jme3.asset.AssetNotFoundException;
@@ -48,7 +46,6 @@ import com.jme3.math.Ray;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.math.Vector4f;
-import com.jme3.renderer.Camera;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.renderer.queue.RenderQueue.ShadowMode;
 import com.jme3.input.*;
@@ -162,7 +159,7 @@ public class App extends SimpleApplication implements ActionListener {
     }
     @Override
     public void simpleInitApp() {
-        player = new PlayerObject(new Geometry("Box", new Box(0, 0, 0)), new BetterCharacterControl(0.5f * 2.8f, 1.8f * 2.8f, 80f), new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md"), new TravelerClass("This Guy Just Punches People. Probably Not Very Effective...", "Textures.DEFAULT"));
+        player = new PlayerObject(new Geometry("Box", new Box(0, 0, 0)), new BetterCharacterControl(0.5f * 2.8f, 1.8f * 2.8f, 80f), new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md"), TravelerClass.class);
         GuiGlobals.initialize(this);
         GuiGlobals.getInstance().setCursorEventsEnabled(false);
         screen = new Screen(this);
@@ -1267,23 +1264,73 @@ interface IPlayerClass {
     public void doSecondaryAttack();
 }
 class TravelerClass implements IPlayerClass {
-    private String desc;
-    private String texturePath;
-    public TravelerClass(String desc, String texturePath) {
-        this.desc = desc;
-        this.texturePath = texturePath;
-    }
     public String getDescription() {
-        return this.desc;
+        return "This Guy Just Punches People. Probably Not Very Effective...";
     }
     public String getTexturePath() {
-        return this.texturePath;
+        return "Textures/Hands.png";
     }
     public void doPrimaryAttack() {
-        //Do Punch
+        //Cycle Through Things
     }
     public void doSecondaryAttack() {
-        //Do Nothing
+        //Cycle Through Secondary Things
+    }
+}
+class ColdPlayerClass implements IPlayerClass {
+    public String getDescription() {
+        return "Almost 0 Kelvin. Use This To Your Advantage. Watch For Sources Of Heat BTW.";
+    }
+    public String getTexturePath() {
+        return "Textures/ColdHands.png";
+    }
+    public void doPrimaryAttack() {
+        //Think Of Primary Attacks
+    }
+    public void doSecondaryAttack() {
+        //Think Of Secondary Attacks
+    }
+}
+class PhysicsPlayerClass implements IPlayerClass {
+    public String getDescription() {
+        return "Uses Physics (Such As Wormholes Or Black Hole Spawning Radii) To His Advantage. Not A Big Fan Of Imaginary Numbers.";
+    }
+    public String getTexturePath() {
+        //return "Textures/";
+    }
+    public void doPrimaryAttack() {
+        //Cycle Primary Attacks
+    }
+    public void doSecondaryAttack() {
+        //Cycle Secondary Attacks
+    }
+}
+class CompSciPlayerClass implements IPlayerClass {
+    public String getDescription() {
+        return "Uses His Git Versions And Linux Kernals To Destroy The Competition. Big Fan Of Imaginary Numbers, And Despiser Of Solar Flares.";
+    }
+    public String getTexturePath() {
+        //return "Textures/";
+    }
+    public void doPrimaryAttack() {
+        //Cycle Primary Attacks
+    }
+    public void doSecondaryAttack() {
+        //Cycle Secondary Attacks
+    }
+}
+class HotPlayerClass implements IPlayerClass {
+    public String getDescription() {
+        return "Contains The Heat Of An Exploding Star Inside Of Him. Not A Fan Of The Cold.";
+    }
+    public String getTexturePath() {
+        //return "Textures/";
+    }
+    public void doPrimaryAttack() {
+        //Cycle Primary Attacks
+    }
+    public void doSecondaryAttack() {
+        //Cycle Secondary Attacks
     }
 }
 class PlayerObject {
@@ -1291,8 +1338,8 @@ class PlayerObject {
     private int stamina;
     private BetterCharacterControl playerControl;
     private Material playerMat;
-    private IPlayerClass pClass;
-    public PlayerObject(Spatial playerSpatial, BetterCharacterControl playerControl, Material playerMat, IPlayerClass pClass) {
+    private Class<? extends IPlayerClass> pClass;
+    public PlayerObject(Spatial playerSpatial, BetterCharacterControl playerControl, Material playerMat, Class<? extends IPlayerClass> pClass) {
         this.playerSpatial = playerSpatial;
         this.stamina = 100;
         this.playerControl = playerControl;
@@ -1312,7 +1359,7 @@ class PlayerObject {
     public BetterCharacterControl getControl() {
         return this.playerControl;
     }
-    public IPlayerClass getPlayerClass() {
+    public Class<? extends IPlayerClass> getPlayerClass() {
         return this.pClass;
     }
 }
