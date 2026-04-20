@@ -277,7 +277,7 @@ public class App extends SimpleApplication implements ActionListener {
         //Offset model so feet align with capsule
         float capsuleHeight = 1.8f * 2.8f;
         player.getSpatial().setLocalTranslation(0, capsuleHeight / 2, 0);
-        player.getControl().setJumpForce(new Vector3f(0, 350, 0));
+        player.getControl().setJumpForce(new Vector3f(0, 500, 0));
         playerNode.addControl(player.getControl());
         bulletAppState.getPhysicsSpace().add(player.getControl());
 
