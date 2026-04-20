@@ -1,4 +1,4 @@
-# SomeGame3D
+# JBattle
 ## Summary:
 A Random Game That I May Or May Not Finish
 
@@ -95,3 +95,8 @@ Here, The Text Parameter Represents The Path To The Texture You Desire. This Mus
     - Removed The Visual Cursor Because It Was Not Worth It
     - Fixed The Settings Button Hitbox
     - Got Burned Out On This :(
+- v0.1.9:
+    - Got Back From Burnout
+    - Changed The Name From SomeGame3D Finally
+    - Put All Of The Player Logic Into A Single Class
+    - Added Some Ideas For Classes And Made Some Blueprints For Some
