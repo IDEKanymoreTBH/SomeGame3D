@@ -19,6 +19,7 @@ import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import com.jme3.app.SimpleApplication;
+import com.jme3.app.StatsAppState;
 import com.jme3.asset.AssetManager;
 import com.jme3.asset.AssetNotFoundException;
 import com.jme3.light.AmbientLight;
@@ -76,7 +77,7 @@ public class App extends SimpleApplication implements ActionListener {
     /**The Physics Controller For The Entire App Basically */
     public BulletAppState bulletAppState; //Physics Controller
     /**The Player*/
-    PlayerObject player;
+    public static PlayerObject player;
     /**The Node The Player Is On */
     public Node playerNode; // Node For Player
     /**Self Explanatory */
@@ -126,6 +127,12 @@ public class App extends SimpleApplication implements ActionListener {
     /**The Moving Platforms List */
     public static ArrayList<Geometry> movingPlatforms = new ArrayList<>();
     public static boolean isInStoryMode = false;
+    public static boolean isCircleActive = false;
+    public static boolean isAltCircleActive = false;
+    public static int primarySelected = 1;
+    public static int secondarySelected = 1;
+    public static float fpsTimer = 0f;
+    public static int frameCount;
     //All GUI Elements(Menus, UI, Etc)
     Picture mainMenu;
     Picture settingsGUI;
@@ -135,6 +142,7 @@ public class App extends SimpleApplication implements ActionListener {
     Picture staminaBar = new Picture("StaminaBar");
     BitmapFont font;
     BitmapText text;
+    BitmapText FPSText;
     SpotLight flashlight;
     AmbientLight amblight;
     Picture crosshair = new Picture("CrossHair");
@@ -143,6 +151,8 @@ public class App extends SimpleApplication implements ActionListener {
     Picture cursor;
     Picture pauseMenu = new Picture("Pause_Menu");
     Picture testGui = new Picture("FPSHand");
+    Picture attackCircleGUI = new Picture("AttackCircle");
+    Picture altAttackCircleGUI = new Picture("AltAttackCircle");
     RoomGenerator gen;
     //The Screen, Specifically Designed For ToneGodGUI
     public Geometry targetGeometry;
@@ -150,7 +160,7 @@ public class App extends SimpleApplication implements ActionListener {
     public static void main(String[] args) {
         App app = new App();
         AppSettings settings = new AppSettings(true);
-        settings.setTitle("SomeGame3D");
+        settings.setTitle("JBattle");
         settings.setFullscreen(true);
         settings.setResolution(1920, 1200);
         settings.setVSync(true);
@@ -186,6 +196,11 @@ public class App extends SimpleApplication implements ActionListener {
         text.setText(Integer.toString(player.getStamina()));
         text.setLocalTranslation(260, settings.getHeight() - 15, 0);
         text.setColor(ColorRGBA.Black);
+        FPSText = new BitmapText(font);
+        FPSText.setSize(guiFont.getCharSet().getRenderedSize() + 10);
+        FPSText.setText(fpsText.getText());
+        FPSText.setLocalTranslation(600, settings.getHeight() - 30, 0);
+        FPSText.setColor(ColorRGBA.White);
         guiNode.attachChild(text);
         mainMenu = new Picture("Main_Menu");
         mainMenu.setImage(assetManager, "Textures/MainMenu.png", true);
@@ -214,6 +229,14 @@ public class App extends SimpleApplication implements ActionListener {
         crosshair.setWidth(20);
         crosshair.setHeight(20);
         crosshair.setPosition((settings.getWidth()/2)-10, (settings.getHeight()/2)-10);
+        attackCircleGUI.setImage(assetManager, "Textures/AttackCircle.png", true);
+        attackCircleGUI.setWidth(settings.getWidth());
+        attackCircleGUI.setHeight(settings.getHeight());
+        attackCircleGUI.setPosition(0, 0);
+        altAttackCircleGUI.setImage(assetManager, "Textures/AltAttackCircle.png", true);
+        altAttackCircleGUI.setWidth(settings.getWidth());
+        altAttackCircleGUI.setHeight(settings.getHeight());
+        altAttackCircleGUI.setPosition(0, 0);
         setDisplayStatView(false);
         setDisplayFps(fpsShown);
         fpsText.setColor(ColorRGBA.White);
@@ -288,7 +311,6 @@ public class App extends SimpleApplication implements ActionListener {
         //Input
         inputManager.addMapping("MoveForward", new KeyTrigger(KeyInput.KEY_W));
         inputManager.addMapping("Jump", new KeyTrigger(KeyInput.KEY_SPACE));
-        inputManager.addMapping("ToggleFPS", new KeyTrigger(KeyInput.KEY_TAB));
         inputManager.addMapping("MoveBackwards", new KeyTrigger(KeyInput.KEY_S));
         inputManager.addMapping("StrafeLeft", new KeyTrigger(KeyInput.KEY_A));
         inputManager.addMapping("StrafeRight", new KeyTrigger(KeyInput.KEY_D));
@@ -299,7 +321,13 @@ public class App extends SimpleApplication implements ActionListener {
         inputManager.addMapping("Interact", new KeyTrigger(KeyInput.KEY_E));
         inputManager.addMapping("Pause", new KeyTrigger(KeyInput.KEY_RETURN));
         inputManager.addMapping("Toggle_Flashlight", new KeyTrigger(KeyInput.KEY_RSHIFT));
-        inputManager.addListener(this, "MoveForward", "Jump", "ToggleFPS", "MoveBackwards", "StrafeLeft", "StrafeRight", "Sprint", "SnapshotCoords", "Crouch", "Set_FlyHack", "Interact", "Pause", "Toggle_Flashlight");
+        inputManager.addMapping("Activate_Circle", new KeyTrigger(KeyInput.KEY_LBRACKET));
+        inputManager.addMapping("Activate_Alt_Circle", new KeyTrigger(KeyInput.KEY_RBRACKET));
+        inputManager.addMapping("DoOneAction", new KeyTrigger(KeyInput.KEY_1));
+        inputManager.addMapping("DoTwoAction", new KeyTrigger(KeyInput.KEY_2));
+        inputManager.addMapping("DoThreeAction", new KeyTrigger(KeyInput.KEY_3));
+        inputManager.addMapping("DoFourAction", new KeyTrigger(KeyInput.KEY_4));
+        inputManager.addListener(this, "MoveForward", "Jump", "ToggleFPS", "MoveBackwards", "StrafeLeft", "StrafeRight", "Sprint", "SnapshotCoords", "Crouch", "Set_FlyHack", "Interact", "Pause", "Toggle_Flashlight", "Activate_Circle", "Activate_Alt_Circle", "DoOneAction", "DoTwoAction", "DoThreeAction", "DoFourAction");
         //(Test) Object To Test Interactables
         targetGeometry = new Geometry("Test_Interactable", new Box(0.1f, 0.5f, 0.4f));
         targetGeometry.setLocalTranslation(9, 4, 5);
@@ -321,9 +349,39 @@ public class App extends SimpleApplication implements ActionListener {
     }
     @Override
     public void simpleUpdate(float tpf) {
-        fpsText.setColor(ColorRGBA.White);
         //Makes The Game Not Run Until The Menus Are Done
         if(isInMainMenu || isInSettings || isInSettingsKeyBinds || isInSettingsOptions || isInSettingsDebugOptions) return;
+        fpsTimer += tpf;
+        frameCount++;
+        if(fpsTimer >= 1.0f) {
+            FPSText.setText("FPS: " + Integer.toString(frameCount));
+            frameCount = 0;
+            fpsTimer = 0;
+        }
+        guiNode.attachChild(FPSText);
+        String texturePath = switch(player.getPlayerClass().getName()) {
+            case "somegame3d.TravelerClass" -> new TravelerClass().getTexturePath();
+            case "somegame3d.ColdPlayerClass" -> new ColdPlayerClass().getTexturePath();
+            case "somegame3d.PhysicsPlayerClass" -> new PhysicsPlayerClass().getTexturePath();
+            case "somegame3d.CompSciPlayerClass" -> new CompSciPlayerClass().getTexturePath();
+            case "somegame3d.HotPlayerClass" -> new HotPlayerClass().getTexturePath();
+            default -> new TravelerClass().getTexturePath();
+        };
+        testGui.setImage(assetManager, texturePath, true);
+        if(isCircleActive) {
+            guiNode.attachChild(attackCircleGUI);
+            guiNode.detachChild(altAttackCircleGUI);
+            isAltCircleActive = false;
+        } else {
+            guiNode.detachChildNamed("AttackCircle");
+        }
+        if(isAltCircleActive) {
+            guiNode.attachChild(altAttackCircleGUI);
+            guiNode.detachChild(attackCircleGUI);
+            isCircleActive = false;
+        } else {
+            guiNode.detachChild(altAttackCircleGUI);
+        }
         flashlight.setPosition(cam.getLocation());
         flashlight.setDirection(cam.getDirection().normalize());
         guiNode.attachChild(staminaBar);
@@ -615,6 +673,42 @@ public class App extends SimpleApplication implements ActionListener {
             }
         } else if(name.equals("Toggle_Flashlight") && isPressed) {
             flashlight.setEnabled(!flashlight.isEnabled());
+        } else if(name.equals("Activate_Circle")) {
+            isCircleActive = isPressed;
+        } else if(name.equals("Activate_Alt_Circle")) {
+            isAltCircleActive = isPressed;
+        } else if(name.equals("DoOneAction") && isPressed) {
+            if(App.isCircleActive) {
+                App.primarySelected = 1;
+            } else if(App.isAltCircleActive) {
+                App.secondarySelected = 1;
+            } else {
+                App.player.setPlayerClass(TravelerClass.class);
+            }
+        } else if(name.equals("DoTwoAction") && isPressed) {
+            if(App.isCircleActive) {
+                App.primarySelected = 2;
+            } else if(App.isAltCircleActive) {
+                App.secondarySelected = 2;
+            } else {
+                App.player.setPlayerClass(ColdPlayerClass.class);
+            }
+        } else if(name.equals("DoThreeAction") && isPressed) {
+            if(App.isCircleActive) {
+                App.primarySelected = 3;
+            } else if(App.isAltCircleActive) {
+                App.secondarySelected = 3;
+            } else {
+                App.player.setPlayerClass(PhysicsPlayerClass.class);
+            }
+        } else if(name.equals("DoFourAction") && isPressed) {
+            if(App.isCircleActive) {
+                App.primarySelected = 4;
+            } else if(App.isAltCircleActive) {
+                App.secondarySelected = 4;
+            } else {
+                App.player.setPlayerClass(CompSciPlayerClass.class);
+            }
         }
         
         /*else if (name.equals("Play_Sound")) {
@@ -1280,10 +1374,40 @@ class TravelerClass implements IPlayerClass {
         return "Textures/Hands.png";
     }
     public void doPrimaryAttack() {
-        //Cycle Through Things
+        switch(App.primarySelected) {
+            case 1:
+                //Do First Attack
+                break;
+            case 2:
+                //Do Second Attack
+                break;
+            case 3:
+                //Do Third Attack
+                break;
+            case 4:
+                //Do Fourth Attack
+                break;
+            default:
+                throw new UnknownError("Somehow, Someway, The Primary Attack Selected Was Outside The Range Of Possible Attacks.");
+        }
     }
     public void doSecondaryAttack() {
-        //Cycle Through Secondary Things
+        switch(App.secondarySelected) {
+            case 1:
+                //Do First Attack
+                break;
+            case 2:
+                //Do Second Attack
+                break;
+            case 3:
+                //Do Third Attack
+                break;
+            case 4:
+                //Do Fourth Attack
+                break;
+            default:
+                throw new UnknownError("Somehow, Someway, The Primary Attack Selected Was Outside The Range Of Possible Attacks.");
+        }
     }
 }
 class ColdPlayerClass implements IPlayerClass {
@@ -1294,10 +1418,40 @@ class ColdPlayerClass implements IPlayerClass {
         return "Textures/ColdHands.png";
     }
     public void doPrimaryAttack() {
-        //Think Of Primary Attacks
+        switch(App.primarySelected) {
+            case 1:
+                //Do First Attack
+                break;
+            case 2:
+                //Do Second Attack
+                break;
+            case 3:
+                //Do Third Attack
+                break;
+            case 4:
+                //Do Fourth Attack
+                break;
+            default:
+                throw new UnknownError("Somehow, Someway, The Primary Attack Selected Was Outside The Range Of Possible Attacks.");
+        }
     }
     public void doSecondaryAttack() {
-        //Think Of Secondary Attacks
+        switch(App.secondarySelected) {
+            case 1:
+                //Do First Attack
+                break;
+            case 2:
+                //Do Second Attack
+                break;
+            case 3:
+                //Do Third Attack
+                break;
+            case 4:
+                //Do Fourth Attack
+                break;
+            default:
+                throw new UnknownError("Somehow, Someway, The Primary Attack Selected Was Outside The Range Of Possible Attacks.");
+        }
     }
 }
 class PhysicsPlayerClass implements IPlayerClass {
@@ -1308,10 +1462,40 @@ class PhysicsPlayerClass implements IPlayerClass {
         return "Textures/PhysicsHands.png";
     }
     public void doPrimaryAttack() {
-        //Cycle Primary Attacks
+        switch(App.primarySelected) {
+            case 1:
+                //Do First Attack
+                break;
+            case 2:
+                //Do Second Attack
+                break;
+            case 3:
+                //Do Third Attack
+                break;
+            case 4:
+                //Do Fourth Attack
+                break;
+            default:
+                throw new UnknownError("Somehow, Someway, The Primary Attack Selected Was Outside The Range Of Possible Attacks.");
+        }
     }
     public void doSecondaryAttack() {
-        //Cycle Secondary Attacks
+        switch(App.secondarySelected) {
+            case 1:
+                //Do First Attack
+                break;
+            case 2:
+                //Do Second Attack
+                break;
+            case 3:
+                //Do Third Attack
+                break;
+            case 4:
+                //Do Fourth Attack
+                break;
+            default:
+                throw new UnknownError("Somehow, Someway, The Primary Attack Selected Was Outside The Range Of Possible Attacks.");
+        }
     }
 }
 class CompSciPlayerClass implements IPlayerClass {
@@ -1322,10 +1506,40 @@ class CompSciPlayerClass implements IPlayerClass {
         return "Textures/CompSciHands.png";
     }
     public void doPrimaryAttack() {
-        //Cycle Primary Attacks
+        switch(App.primarySelected) {
+            case 1:
+                //Do First Attack
+                break;
+            case 2:
+                //Do Second Attack
+                break;
+            case 3:
+                //Do Third Attack
+                break;
+            case 4:
+                //Do Fourth Attack
+                break;
+            default:
+                throw new UnknownError("Somehow, Someway, The Primary Attack Selected Was Outside The Range Of Possible Attacks.");
+        }
     }
     public void doSecondaryAttack() {
-        //Cycle Secondary Attacks
+        switch(App.secondarySelected) {
+            case 1:
+                //Do First Attack
+                break;
+            case 2:
+                //Do Second Attack
+                break;
+            case 3:
+                //Do Third Attack
+                break;
+            case 4:
+                //Do Fourth Attack
+                break;
+            default:
+                throw new UnknownError("Somehow, Someway, The Primary Attack Selected Was Outside The Range Of Possible Attacks.");
+        }
     }
 }
 class HotPlayerClass implements IPlayerClass {
@@ -1336,10 +1550,40 @@ class HotPlayerClass implements IPlayerClass {
         return "Textures/HotHands.png";
     }
     public void doPrimaryAttack() {
-        //Cycle Primary Attacks
+        switch(App.primarySelected) {
+            case 1:
+                //Do First Attack
+                break;
+            case 2:
+                //Do Second Attack
+                break;
+            case 3:
+                //Do Third Attack
+                break;
+            case 4:
+                //Do Fourth Attack
+                break;
+            default:
+                throw new UnknownError("Somehow, Someway, The Primary Attack Selected Was Outside The Range Of Possible Attacks.");
+        }
     }
     public void doSecondaryAttack() {
-        //Cycle Secondary Attacks
+        switch(App.secondarySelected) {
+            case 1:
+                //Do First Attack
+                break;
+            case 2:
+                //Do Second Attack
+                break;
+            case 3:
+                //Do Third Attack
+                break;
+            case 4:
+                //Do Fourth Attack
+                break;
+            default:
+                throw new UnknownError("Somehow, Someway, The Primary Attack Selected Was Outside The Range Of Possible Attacks.");
+        }
     }
 }
 class PlayerObject {
