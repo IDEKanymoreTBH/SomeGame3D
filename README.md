@@ -106,3 +106,8 @@ Here, The Text Parameter Represents The Path To The Texture You Desire. This Mus
     - Added Some Wheels To Select Attachs (Only Logic Selects, No Graphics For Now)
     - Fixed Jump Height
     - Changed The Keybinds Settings Page To Show Some Keybinds. Will Finish Later
+- v0.2.1:
+    - Added The Rest Of The Current Keybinds To The Menu.
+    - 50% Increase In Speed For The Player.
+    - Fixed Pause Menu Related Bugs.
+    - Pause Menu Now Has Quit Button.
