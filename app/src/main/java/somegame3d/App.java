@@ -19,7 +19,6 @@ import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import com.jme3.app.SimpleApplication;
-import com.jme3.app.StatsAppState;
 import com.jme3.asset.AssetManager;
 import com.jme3.asset.AssetNotFoundException;
 import com.jme3.light.AmbientLight;
@@ -457,7 +456,7 @@ public class App extends SimpleApplication implements ActionListener {
                 walkDir.subtractLocal(walkDir.normalize().mult(friction * tpf));
             }
         }
-        player.getControl().setWalkDirection(new Vector3f(walkDir.x * walkDirMult, 0, walkDir.z * walkDirMult));
+        player.getControl().setWalkDirection(new Vector3f((walkDir.x * 1.5f) * walkDirMult, 0, (walkDir.z * 1.5f) * walkDirMult));
         player.getControl().setViewDirection(cam.getDirection());
         if(!flyHacksEnabled) {
             if(!player.getControl().isDucked()) {
