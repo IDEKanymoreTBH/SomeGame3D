@@ -100,3 +100,9 @@ Here, The Text Parameter Represents The Path To The Texture You Desire. This Mus
     - Changed The Name From SomeGame3D Finally
     - Put All Of The Player Logic Into A Single Class
     - Added Some Ideas For Classes And Made Some Blueprints For Some
+- v0.2.0:
+    - Wow First 0.2 Update. Aren't We Excited.
+    - Added An FPS Counter Somewhere On Screen
+    - Added Some Wheels To Select Attachs (Only Logic Selects, No Graphics For Now)
+    - Fixed Jump Height
+    - Changed The Keybinds Settings Page To Show Some Keybinds. Will Finish Later
