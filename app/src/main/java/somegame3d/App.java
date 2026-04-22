@@ -186,9 +186,11 @@ public class App extends SimpleApplication implements ActionListener {
         // albx.show();
         //Interaction Stuff
         intCont = new InteractionController();
-        //Other Stuff Like The NPC Test
-        CharacterObj charObj = new CharacterObj(assetManager, 2, 8);
+        //All Billboards That Help With Tutorials.
+        CharacterObj charObj = new CharacterObj(assetManager, 2, 8, 0f, -1f, -20f, "Textures/WalkLook.png");
+        CharacterObj charObj2 = new CharacterObj(assetManager, 2, 8, 0f, -1f, -30f, "Textures/SprintCrouch.png");
         charObj.render(rootNode);
+        charObj2.render(rootNode);
         font = assetManager.loadFont("Interface/Fonts/Default.fnt");
         text = new BitmapText(font);
         text.setSize(guiFont.getCharSet().getRenderedSize() + 10);
@@ -867,13 +869,21 @@ class CharacterObj {
     private AssetManager assetManager;
     public BillboardControl bbControl;
     private Node billBoardNode;
+    private float x;
+    private float y;
+    private float z;
+    private String texturePath;
     /**
      * Creates A Character Object. This Character Will Follow The Player With Its Direction.
      * @param assetManager The Main Application AssetManager.
      * @param npcWidth The Width Of The Character
      * @param npcHeight The Height Of The Character
      */
-    public CharacterObj(AssetManager assetManager, float npcWidth, float npcHeight) {
+    public CharacterObj(AssetManager assetManager, float npcWidth, float npcHeight, float x, float y, float z, String texturePath) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        this.texturePath = texturePath;
         this.assetManager = assetManager;
         this.npcWidth = npcWidth;
         this.npcHeight = npcHeight;
@@ -898,7 +908,7 @@ class CharacterObj {
         this.npcMesh.updateCounts();
         this.geo = new Geometry("Character".concat(Integer.toString(globalCharCount + 1)), this.npcMesh);
         this.mat = new Material(this.assetManager, "Common/MatDefs/Light/Lighting.j3md");
-        this.mat.setTexture("DiffuseMap", this.assetManager.loadTexture("Textures/TestPNG.png"));
+        this.mat.setTexture("DiffuseMap", this.assetManager.loadTexture(this.texturePath));
         this.mat.setBoolean("UseMaterialColors", true);
         this.mat.setColor("Diffuse", ColorRGBA.Cyan);
         this.mat.setColor("Ambient", ColorRGBA.fromRGBA255(0, 100, 100, 1));
@@ -912,6 +922,7 @@ class CharacterObj {
         this.billBoardNode = new Node("BillBoardNode");
         this.billBoardNode.attachChild(this.geo);
         this.billBoardNode.addControl(bbControl);
+        this.billBoardNode.setLocalTranslation(this.x, this.y, this.z);
         globalCharCount++;
     }
     /**
