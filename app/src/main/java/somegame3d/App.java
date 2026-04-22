@@ -538,6 +538,7 @@ public class App extends SimpleApplication implements ActionListener {
                 albx.setTextPadding(new Vector4f(0,0,0,0));
                 albx.setButtonOkText("OK");
                 screen.addElement(albx);
+                albx.setLocalTranslation(albx.getX(), albx.getY(), 1000);
                 albx.show();
             }
             if(inputManager.getCursorPosition().x >= 777.0f && inputManager.getCursorPosition().x <= 1142.0f && inputManager.getCursorPosition().y <= 419.0f && inputManager.getCursorPosition().y >= 299.0f && isInMainMenu) {
@@ -596,23 +597,6 @@ public class App extends SimpleApplication implements ActionListener {
                 keybindsGUI.setHeight(settings.getHeight());
                 keybindsGUI.setPosition(0, 0);
                 guiNode.attachChild(keybindsGUI);
-            }
-            if(inputManager.getCursorPosition().x >= 753.0f && inputManager.getCursorPosition().x <= 1168.0f && inputManager.getCursorPosition().y <= 1015.0f && inputManager.getCursorPosition().y >= 931.0f && isInSettings) {
-                //Debug Options
-                int albxW = 377;
-                int albxH = 500;
-                AlertBox albx = new AlertBox(screen, "alert", new Vector2f((screen.getWidth() / 2) - (albxW/2), (screen.getHeight() / 2 - albxH/2)), new Vector2f(albxW, albxH)) {
-                    @Override
-                    public void onButtonOkPressed(MouseButtonEvent evt, boolean toggled) {
-                        this.hide();
-                        screen.removeElement(this);
-                    }
-                };
-                albx.setMsg("This Feature Is No Longer Available.");
-                albx.setTextPadding(new Vector4f(0, 0, 0, 0));
-                albx.setButtonOkText("OK");
-                screen.addElement(albx);
-                albx.show();
             }
             if(inputManager.getCursorPosition().x >= 776.0f && inputManager.getCursorPosition().x <= 1146.0f && inputManager.getCursorPosition().y <= 1149.0f && inputManager.getCursorPosition().y >= 1070.0f) {
                 //Changes W Key To Another
