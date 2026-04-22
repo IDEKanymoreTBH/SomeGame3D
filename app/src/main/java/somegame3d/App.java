@@ -604,11 +604,13 @@ public class App extends SimpleApplication implements ActionListener {
             }
             if(isInPauseMenu && inputManager.getCursorPosition().x >= 13.0f && inputManager.getCursorPosition().x <= 291.0f && inputManager.getCursorPosition().y <= 1018.0f && inputManager.getCursorPosition().y >= 977.0f) {
                 //Resume Button In Start Menu
-                flyCam.setEnabled(true);
-                inputManager.setCursorVisible(false);
+                if(!isInteractingWithShop1) {
+                    flyCam.setEnabled(true);
+                    inputManager.setCursorVisible(false);
+                    canMove = true;
+                }
                 guiNode.detachChildNamed("Pause_Menu");
                 isInPauseMenu = false;
-                canMove = true;
             }
             if(isInPauseMenu && inputManager.getCursorPosition().x >= 13.0f && inputManager.getCursorPosition().x <= 291.0f && inputManager.getCursorPosition().y <= 837.0f && inputManager.getCursorPosition().y >= 789.0f) {
                 //Quit Button Inside Pause Menu
@@ -632,11 +634,13 @@ public class App extends SimpleApplication implements ActionListener {
                 canMove = false;
                 isInPauseMenu = true;
             } else {
-                flyCam.setEnabled(true);
-                inputManager.setCursorVisible(false);
+                if(!isInteractingWithShop1) {
+                    flyCam.setEnabled(true);
+                    inputManager.setCursorVisible(false);
+                    canMove = true;
+                }
                 guiNode.detachChildNamed("Pause_Menu");
                 isInPauseMenu = false;
-                canMove = true;
             }
         } else if (name.equals("Crouch") && isPressed) {
             player.getControl().setDucked(!player.getControl().isDucked());
@@ -645,7 +649,7 @@ public class App extends SimpleApplication implements ActionListener {
             //Also will test cursor positioning
             inputManager.setMouseCursor(null);
         } else if (name.equals("Interact") && isPressed) {
-            if (intCont.getValue("Shop1.obj")) {
+            if (intCont.getValue("Shop1.obj") && !isInPauseMenu) {
                 if(!isInteractingWithShop1) {
                     flyCam.setEnabled(false);
                     inputManager.setCursorVisible(true);
