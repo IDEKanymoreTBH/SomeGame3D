@@ -369,6 +369,8 @@ public class App extends SimpleApplication implements ActionListener {
             default -> new TravelerClass().getTexturePath();
         };
         testGui.setImage(assetManager, texturePath, true);
+        attackCircleGUI.setImage(assetManager, "Textures/AttackCircle" + Integer.toString(primarySelected) + ".png", true);
+        altAttackCircleGUI.setImage(assetManager, "Textures/AltAttackCircle" + Integer.toString(secondarySelected) + ".png", true);
         if(isCircleActive) {
             guiNode.attachChild(attackCircleGUI);
             guiNode.detachChild(altAttackCircleGUI);
