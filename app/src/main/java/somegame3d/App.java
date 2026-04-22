@@ -520,6 +520,7 @@ public class App extends SimpleApplication implements ActionListener {
                 flyCam.setEnabled(true);
                 isInMainMenu = false;
                 isInStoryMode = true;
+                canMove = true;
                 guiNode.detachAllChildren();
             }
             if(inputManager.getCursorPosition().x >= 777.0f && inputManager.getCursorPosition().x <= 1142.0f && inputManager.getCursorPosition().y <= 662.0f && inputManager.getCursorPosition().y >= 537.0f && isInMainMenu) {
@@ -601,13 +602,21 @@ public class App extends SimpleApplication implements ActionListener {
             if(inputManager.getCursorPosition().x >= 776.0f && inputManager.getCursorPosition().x <= 1146.0f && inputManager.getCursorPosition().y <= 1149.0f && inputManager.getCursorPosition().y >= 1070.0f) {
                 //Changes W Key To Another
             }
-            if(inputManager.getCursorPosition().x >= 13.0f && inputManager.getCursorPosition().x <= 223.0f && inputManager.getCursorPosition().y <= 1018.0f && inputManager.getCursorPosition().y >= 977.0f) {
-                //Basically What Happens When You Click Enter Inside Pause Menu
+            if(isInPauseMenu && inputManager.getCursorPosition().x >= 13.0f && inputManager.getCursorPosition().x <= 291.0f && inputManager.getCursorPosition().y <= 1018.0f && inputManager.getCursorPosition().y >= 977.0f) {
+                //Resume Button In Start Menu
                 flyCam.setEnabled(true);
                 inputManager.setCursorVisible(false);
                 guiNode.detachChildNamed("Pause_Menu");
                 isInPauseMenu = false;
                 canMove = true;
+            }
+            if(isInPauseMenu && inputManager.getCursorPosition().x >= 13.0f && inputManager.getCursorPosition().x <= 291.0f && inputManager.getCursorPosition().y <= 837.0f && inputManager.getCursorPosition().y >= 789.0f) {
+                //Quit Button Inside Pause Menu
+                flyCam.setEnabled(false);
+                isInStoryMode = false;
+                isInMainMenu = true;
+                guiNode.attachChild(mainMenu);
+                inputManager.setCursorVisible(true);
             }
             if(inputManager.getCursorPosition().x >= 13.0f && inputManager.getCursorPosition().x <= 661.0f && inputManager.getCursorPosition().y <= 932.0f && inputManager.getCursorPosition().y >= 881.0f) {}
             System.out.println(Float.toString(inputManager.getCursorPosition().x).concat(", ").concat(Float.toString(inputManager.getCursorPosition().y)));
