@@ -1,14 +1,7 @@
 <DocType DocType.IAT>
 <IATVersion 1.0.0>
 #StartDoc
-ObjCreator.setTexture('Textures/AdhesiveBlock.png');
-ObjCreator.create('Geometry', -10, 5, 5, 2, 2, 2);
-ObjCreator.setTexture('Textures/MassOrb™.png');
-ObjCreator.create('Geometry', -10, 5, 10, 2, 2, 2);
 ObjCreator.setTexture('Textures/WallTexture.png');
 ObjCreator.create('Geometry', 0, -1, 0, 40, 2, 40);
-ObjCreator.create('Geometry', 5, 10, 5, 10, 2, 10);
-ObjCreator.create('Geometry', 5, 5, 5, 2, 10, 10);
-ObjCreator.create('Geometry', 5, 0, 5, 10, 2, 10);
 ObjCreator.create('Geometry', 0, -1, -40, 40, 2, 40);
 #EndDoc

@@ -111,10 +111,6 @@ public class App extends SimpleApplication implements ActionListener {
     public boolean isInSettingsDebugOptions = false;
     /**Self Explanatory */
     public boolean flyHacksEnabled = false;
-    /**Counts Up Until A Certain Amount, Then Decreases The Stamina.*/
-    public int staminaDecreaseCounter = 0;
-    /**Counts Up To A Certain Amount, Then Increases The Stamina */
-    public int staminaIncreaseCounter = 0;
     /**Self Explanatory */
     public boolean isInteractingWithShop1 = false;
     /**Self Explanatory */
@@ -138,7 +134,6 @@ public class App extends SimpleApplication implements ActionListener {
     Picture keybindsGUI;
     Picture optionsGUI;
     Picture debugOptionsGUI;
-    Picture staminaBar = new Picture("StaminaBar");
     BitmapFont font;
     BitmapText text;
     BitmapText FPSText;
@@ -194,7 +189,6 @@ public class App extends SimpleApplication implements ActionListener {
         font = assetManager.loadFont("Interface/Fonts/Default.fnt");
         text = new BitmapText(font);
         text.setSize(guiFont.getCharSet().getRenderedSize() + 10);
-        text.setText(Integer.toString(player.getStamina()));
         text.setLocalTranslation(260, settings.getHeight() - 15, 0);
         text.setColor(ColorRGBA.Black);
         FPSText = new BitmapText(font);
@@ -213,11 +207,6 @@ public class App extends SimpleApplication implements ActionListener {
         shop1Gui.setWidth(750);
         shop1Gui.setHeight(881);
         shop1Gui.setPosition(0, 0);
-        staminaBar.setImage(assetManager, "Textures/StaminaBar.png", true);
-        staminaBar.setWidth(1009);
-        staminaBar.setHeight(791.015625f);
-        staminaBar.setPosition(0, 410);
-        guiNode.attachChild(staminaBar);
         interactGui.setImage(assetManager, "Textures/InteractGUI.png", true);
         interactGui.setWidth(2000);
         interactGui.setHeight(1000);
@@ -352,6 +341,7 @@ public class App extends SimpleApplication implements ActionListener {
     public void simpleUpdate(float tpf) {
         //Makes The Game Not Run Until The Menus Are Done
         if(isInMainMenu || isInSettings || isInSettingsKeyBinds || isInSettingsOptions || isInSettingsDebugOptions) return;
+        //Custom FPS Counter
         fpsTimer += tpf;
         frameCount++;
         if(fpsTimer >= 1.0f) {
@@ -387,30 +377,8 @@ public class App extends SimpleApplication implements ActionListener {
         }
         flashlight.setPosition(cam.getLocation());
         flashlight.setDirection(cam.getDirection().normalize());
-        guiNode.attachChild(staminaBar);
         guiNode.attachChild(testGui);
         guiNode.attachChild(crosshair);
-        if(walkDirMult == 10f && (moveForward || moveBackwards || strafeLeft || strafeRight)) {
-            if(staminaDecreaseCounter == 7) {
-                staminaDecreaseCounter = 0;
-                player.setStamina(player.getStamina() - 1);
-            } else {
-                staminaDecreaseCounter++;
-            }
-        } else {
-            if(staminaIncreaseCounter == 20) {
-                staminaIncreaseCounter = 0;
-                if(player.getStamina() < 100) {
-                    player.setStamina(player.getStamina() + 1);
-                }
-            } else {
-                staminaIncreaseCounter++;
-            }
-        }
-        if(player.getStamina() <= 0) {
-            walkDirMult = 4f;
-        }
-        text.setText(Integer.toString(player.getStamina()));
         guiNode.attachChild(text);
         desiredDir.set(0, 0, 0);
         if (moveForward) {
@@ -501,7 +469,7 @@ public class App extends SimpleApplication implements ActionListener {
         } else if (name.equals("StrafeRight") && !isInMainMenu && !isInSettings && !isInSettingsKeyBinds && !isInSettingsOptions && !isInSettingsDebugOptions && canMove) {
             strafeRight = isPressed;
         } else if (name.equals("Sprint") && !isInMainMenu && !isInSettings && !isInSettingsKeyBinds && !isInSettingsOptions && !isInSettingsDebugOptions) {
-            walkDirMult = (isPressed && player.getStamina() > 0 && player.getControl().isOnGround()) ? 10f : 4f;
+            walkDirMult = (isPressed && player.getControl().isOnGround()) ? 10f : 4f;
         } else if (name.equals("Click") && isPressed) {
             if(isInStoryMode) {
                 
@@ -1567,23 +1535,15 @@ class HotPlayerClass implements IPlayerClass {
 }
 class PlayerObject {
     private Spatial playerSpatial;
-    private int stamina;
     private BetterCharacterControl playerControl;
     private Material playerMat;
     private Class<? extends IPlayerClass> pClass;
     public PlayerObject(Spatial playerSpatial, BetterCharacterControl playerControl, Material playerMat, Class<? extends IPlayerClass> pClass) {
         this.playerSpatial = playerSpatial;
-        this.stamina = 100;
         this.playerControl = playerControl;
         this.playerMat = playerMat;
         this.playerSpatial.setMaterial(this.playerMat);
         this.pClass = pClass;
-    }
-    public int getStamina() {
-        return this.stamina;
-    }
-    public void setStamina(int newStamina) {
-        this.stamina = newStamina;
     }
     public Spatial getSpatial() {
         return this.playerSpatial;
