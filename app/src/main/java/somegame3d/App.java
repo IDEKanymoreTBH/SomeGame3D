@@ -230,11 +230,11 @@ public class App extends SimpleApplication implements ActionListener {
         crosshair.setWidth(20);
         crosshair.setHeight(20);
         crosshair.setPosition((settings.getWidth()/2)-10, (settings.getHeight()/2)-10);
-        attackCircleGUI.setImage(assetManager, "Textures/AttackCircle.png", true);
+        attackCircleGUI.setImage(assetManager, "Textures/AttackCircle1.png", true);
         attackCircleGUI.setWidth(settings.getWidth());
         attackCircleGUI.setHeight(settings.getHeight());
         attackCircleGUI.setPosition(0, 0);
-        altAttackCircleGUI.setImage(assetManager, "Textures/AltAttackCircle.png", true);
+        altAttackCircleGUI.setImage(assetManager, "Textures/AltAttackCircle1.png", true);
         altAttackCircleGUI.setWidth(settings.getWidth());
         altAttackCircleGUI.setHeight(settings.getHeight());
         altAttackCircleGUI.setPosition(0, 0);
@@ -513,7 +513,7 @@ public class App extends SimpleApplication implements ActionListener {
         } else if (name.equals("StrafeRight") && !isInMainMenu && !isInSettings && !isInSettingsKeyBinds && !isInSettingsOptions && !isInSettingsDebugOptions && canMove) {
             strafeRight = isPressed;
         } else if (name.equals("Sprint") && !isInMainMenu && !isInSettings && !isInSettingsKeyBinds && !isInSettingsOptions && !isInSettingsDebugOptions) {
-            walkDirMult = (isPressed && player.getStamina() > 0) ? 10f : 4f;
+            walkDirMult = (isPressed && player.getStamina() > 0 && player.getControl().isOnGround()) ? 10f : 4f;
         } else if (name.equals("Click") && isPressed) {
             if(isInStoryMode) {
                 
@@ -603,9 +603,6 @@ public class App extends SimpleApplication implements ActionListener {
                 keybindsGUI.setPosition(0, 0);
                 guiNode.attachChild(keybindsGUI);
             }
-            if(inputManager.getCursorPosition().x >= 776.0f && inputManager.getCursorPosition().x <= 1146.0f && inputManager.getCursorPosition().y <= 1149.0f && inputManager.getCursorPosition().y >= 1070.0f) {
-                //Changes W Key To Another
-            }
             if(isInPauseMenu && inputManager.getCursorPosition().x >= 13.0f && inputManager.getCursorPosition().x <= 291.0f && inputManager.getCursorPosition().y <= 1018.0f && inputManager.getCursorPosition().y >= 977.0f) {
                 //Resume Button In Start Menu
                 if(!isInteractingWithShop1) {
@@ -625,6 +622,9 @@ public class App extends SimpleApplication implements ActionListener {
                 inputManager.setCursorVisible(true);
             }
             if(inputManager.getCursorPosition().x >= 13.0f && inputManager.getCursorPosition().x <= 661.0f && inputManager.getCursorPosition().y <= 932.0f && inputManager.getCursorPosition().y >= 881.0f) {}
+            if(isInStoryMode && !(inputManager.isCursorVisible())) {
+                System.out.println("This Method Worked!");
+            }
             System.out.println(Float.toString(inputManager.getCursorPosition().x).concat(", ").concat(Float.toString(inputManager.getCursorPosition().y)));
         } else if (name.equals("SnapshotCoords")) {
             developedProducts++;
