@@ -473,27 +473,17 @@ public class App extends SimpleApplication implements ActionListener {
         float[] angles = cam.getRotation().toAngles(null);
         angles[0] = FastMath.clamp(angles[0], -FastMath.HALF_PI + 0.1f, FastMath.HALF_PI - 0.1f);
         cam.setRotation(new Quaternion().fromAngles(angles[0], angles[1], angles[2]));
-
-        for (Geometry g : movingPlatforms) {
-            g.setLocalTranslation(g.getLocalTranslation().add(new Vector3f(0, 0, 0f)));
-            g.updateGeometricState();
-            g.updateModelBound();
-        }
     }
     @Override
     public void onAction(String name, boolean isPressed, float tpf) {
         if (name.equals("MoveForward") && !isInMainMenu && !isInSettings && !isInSettingsKeyBinds && !isInSettingsOptions && !isInSettingsDebugOptions && canMove) {
             moveForward = isPressed;
         } else if (name.equals("Jump") && isPressed) {
-            if(canMove) {
-                if (player.getControl().isOnGround()) {
-                    player.getControl().jump();
-                }
-            } else if(!canMove && isInteractingWithShop1) {
-                if(developedProducts >= 15) {
-                    developedProducts -= 15;
-                    System.out.println("Purchase Successful");
-                }
+            if(canMove && player.getControl().isOnGround()) {
+                player.getControl().jump();
+            } else if(!canMove && isInteractingWithShop1 && developedProducts >= 15) {
+                developedProducts -= 15;
+                System.out.println("Purchase Successful");
             }
         } else if (name.equals("ToggleFPS") && !isInMainMenu && !isInSettings && !isInSettingsKeyBinds && !isInSettingsOptions && !isInSettingsDebugOptions) {
             if(!fpsShown) {
