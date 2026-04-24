@@ -493,8 +493,6 @@ public class App extends SimpleApplication implements ActionListener {
                 if(developedProducts >= 15) {
                     developedProducts -= 15;
                     System.out.println("Purchase Successful");
-                } else {
-                    throw new InvalidPurchaseException("Purchase Cannot Be Made. Insufficient Funds");
                 }
             }
         } else if (name.equals("ToggleFPS") && !isInMainMenu && !isInSettings && !isInSettingsKeyBinds && !isInSettingsOptions && !isInSettingsDebugOptions) {
@@ -972,24 +970,6 @@ class InteractionController {
      */
     public boolean getValue(String name) {
         return interactionMap.get(name);
-    }
-}
-/**
- * The {@code InvalidPurchaseException} Class Is Thrown By The Main Application Whenever A Purchase Is Made That Would Send The Player's Script Count Negative.
- * This Class Extends {@code RuntimeException} To Be Thrown Whenever.
- * @see RuntimeException
- * @author IDEKAnymoreTBH On Github
- * @version 1.0.2 Beta
- */
-class InvalidPurchaseException extends RuntimeException {
-    /**
-     * Creates A New {@code InvalidPurchaseException}. These Tell If The Player Has Sufficient Amount To Buy Something.
-     * @author IDEKAnymoreTBH On Github
-     * @param m The Message. It Is Of Type Object, Meaning Anything Can Go There And Still Be Valid.
-     * @see InvalidPurchaseException
-     */
-    public InvalidPurchaseException(Object m) {
-        super(m.toString());
     }
 }
 /**This Class Has A Bunch Of Utilities That Are Used. 
