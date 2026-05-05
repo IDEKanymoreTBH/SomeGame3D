@@ -1,3 +1,4 @@
+//TODO: Use The JINPUT API To Add Controller Support
 /*Ideas For Game:
  * - Final Idea: JBattle: JME Krunker With Blocks To Place And Orbs To Throw
  * Class Ideas:
@@ -12,6 +13,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
@@ -21,6 +24,8 @@ import org.apache.hc.core5.http.io.entity.StringEntity;
 import com.jme3.app.SimpleApplication;
 import com.jme3.asset.AssetManager;
 import com.jme3.asset.AssetNotFoundException;
+import com.jme3.audio.AudioNode;
+import com.jme3.audio.AudioData.DataType;
 import com.jme3.light.AmbientLight;
 import com.jme3.light.SpotLight;
 import com.jme3.scene.Geometry;
@@ -117,6 +122,7 @@ public class App extends SimpleApplication implements ActionListener {
     public boolean canMove = true;
     /**Self Explanatory */
     public boolean isInPauseMenu = false;
+    public boolean isInError = false;
     /**An Old Stat That Used To Be Used*/
     public int developedProducts = 0;
     /**The Moving Platforms List */
@@ -124,8 +130,11 @@ public class App extends SimpleApplication implements ActionListener {
     public static boolean isInStoryMode = false;
     public static boolean isCircleActive = false;
     public static boolean isAltCircleActive = false;
+    //:)
+    public static int blockSelected = 1;
     public static int primarySelected = 1;
     public static int secondarySelected = 1;
+    //FPS Stuff
     public static float fpsTimer = 0f;
     public static int frameCount;
     //All GUI Elements(Menus, UI, Etc)
@@ -147,6 +156,7 @@ public class App extends SimpleApplication implements ActionListener {
     Picture testGui = new Picture("FPSHand");
     Picture attackCircleGUI = new Picture("AttackCircle");
     Picture altAttackCircleGUI = new Picture("AltAttackCircle");
+    Picture blockSelectPic = new Picture("Block_Selected");
     RoomGenerator gen;
     //The Screen, Specifically Designed For ToneGodGUI
     public Geometry targetGeometry;
@@ -155,7 +165,9 @@ public class App extends SimpleApplication implements ActionListener {
         App app = new App();
         AppSettings settings = new AppSettings(true);
         settings.setTitle("JBattle");
+        settings.setResizable(false);
         settings.setFullscreen(true);
+        settings.setWindowSize(480, 300);
         settings.setResolution(1920, 1200);
         settings.setVSync(true);
         app.setSettings(settings);
@@ -198,7 +210,12 @@ public class App extends SimpleApplication implements ActionListener {
         FPSText.setColor(ColorRGBA.White);
         guiNode.attachChild(text);
         mainMenu = new Picture("Main_Menu");
-        mainMenu.setImage(assetManager, "Textures/MainMenu.png", true);
+        if(context.getSettings().isFullscreen()) {
+            mainMenu.setImage(assetManager, "Textures/MainMenu.png", true);
+        } else {
+            mainMenu.setImage(assetManager, "Textures/FullScreenError.png", true);
+            isInError = true;
+        }
         mainMenu.setWidth(settings.getWidth());
         mainMenu.setHeight(settings.getHeight());
         mainMenu.setPosition(0, 0);
@@ -227,6 +244,10 @@ public class App extends SimpleApplication implements ActionListener {
         altAttackCircleGUI.setWidth(settings.getWidth());
         altAttackCircleGUI.setHeight(settings.getHeight());
         altAttackCircleGUI.setPosition(0, 0);
+        blockSelectPic.setImage(assetManager, "Textures/BlockSelect1.png", true);
+        blockSelectPic.setWidth(settings.getWidth());
+        blockSelectPic.setHeight(settings.getHeight());
+        blockSelectPic.setPosition(0, 0);
         setDisplayStatView(false);
         setDisplayFps(fpsShown);
         fpsText.setColor(ColorRGBA.White);
@@ -317,7 +338,8 @@ public class App extends SimpleApplication implements ActionListener {
         inputManager.addMapping("DoTwoAction", new KeyTrigger(KeyInput.KEY_2));
         inputManager.addMapping("DoThreeAction", new KeyTrigger(KeyInput.KEY_3));
         inputManager.addMapping("DoFourAction", new KeyTrigger(KeyInput.KEY_4));
-        inputManager.addListener(this, "MoveForward", "Jump", "ToggleFPS", "MoveBackwards", "StrafeLeft", "StrafeRight", "Sprint", "SnapshotCoords", "Crouch", "Set_FlyHack", "Interact", "Pause", "Toggle_Flashlight", "Activate_Circle", "Activate_Alt_Circle", "DoOneAction", "DoTwoAction", "DoThreeAction", "DoFourAction");
+        inputManager.addMapping("Place_Block", new KeyTrigger(KeyInput.KEY_F));
+        inputManager.addListener(this, "MoveForward", "Jump", "ToggleFPS", "MoveBackwards", "StrafeLeft", "StrafeRight", "Sprint", "SnapshotCoords", "Crouch", "Set_FlyHack", "Interact", "Pause", "Toggle_Flashlight", "Activate_Circle", "Activate_Alt_Circle", "DoOneAction", "DoTwoAction", "DoThreeAction", "DoFourAction", "Place_Block");
         //(Test) Object To Test Interactables
         targetGeometry = new Geometry("Test_Interactable", new Box(0.1f, 0.5f, 0.4f));
         targetGeometry.setLocalTranslation(9, 4, 5);
@@ -361,6 +383,7 @@ public class App extends SimpleApplication implements ActionListener {
         testGui.setImage(assetManager, texturePath, true);
         attackCircleGUI.setImage(assetManager, "Textures/AttackCircle" + Integer.toString(primarySelected) + ".png", true);
         altAttackCircleGUI.setImage(assetManager, "Textures/AltAttackCircle" + Integer.toString(secondarySelected) + ".png", true);
+        blockSelectPic.setImage(assetManager, "Textures/BlockSelect" + Integer.toString(blockSelected) + ".png", true);
         if(isCircleActive) {
             guiNode.attachChild(attackCircleGUI);
             guiNode.detachChild(altAttackCircleGUI);
@@ -375,6 +398,7 @@ public class App extends SimpleApplication implements ActionListener {
         } else {
             guiNode.detachChild(altAttackCircleGUI);
         }
+        guiNode.attachChild(blockSelectPic);
         flashlight.setPosition(cam.getLocation());
         flashlight.setDirection(cam.getDirection().normalize());
         guiNode.attachChild(testGui);
@@ -474,7 +498,7 @@ public class App extends SimpleApplication implements ActionListener {
             if(isInStoryMode) {
                 
             }
-            if(inputManager.getCursorPosition().x >= 777.0f && inputManager.getCursorPosition().x <= 1142.0f && inputManager.getCursorPosition().y <= 901.0f && inputManager.getCursorPosition().y >= 782.0f && isInMainMenu) {
+            if(inputManager.getCursorPosition().x >= 777.0f && inputManager.getCursorPosition().x <= 1142.0f && inputManager.getCursorPosition().y <= 901.0f && inputManager.getCursorPosition().y >= 782.0f && isInMainMenu && !isInError) {
                 //Story Mode
                 inputManager.setCursorVisible(false);
                 flyCam.setEnabled(true);
@@ -483,7 +507,7 @@ public class App extends SimpleApplication implements ActionListener {
                 canMove = true;
                 guiNode.detachAllChildren();
             }
-            if(inputManager.getCursorPosition().x >= 777.0f && inputManager.getCursorPosition().x <= 1142.0f && inputManager.getCursorPosition().y <= 662.0f && inputManager.getCursorPosition().y >= 537.0f && isInMainMenu) {
+            if(inputManager.getCursorPosition().x >= 777.0f && inputManager.getCursorPosition().x <= 1142.0f && inputManager.getCursorPosition().y <= 662.0f && inputManager.getCursorPosition().y >= 537.0f && isInMainMenu && !isInError) {
                 //Multiplayer Button
                 System.out.println("ScreenSize: " + Float.toString(screen.getWidth()) + ", " + Float.toString(screen.getHeight()));
                 int albxW = 377;
@@ -502,7 +526,7 @@ public class App extends SimpleApplication implements ActionListener {
                 albx.setLocalTranslation(albx.getX(), albx.getY(), 1000);
                 albx.show();
             }
-            if(inputManager.getCursorPosition().x >= 777.0f && inputManager.getCursorPosition().x <= 1142.0f && inputManager.getCursorPosition().y <= 419.0f && inputManager.getCursorPosition().y >= 299.0f && isInMainMenu) {
+            if(inputManager.getCursorPosition().x >= 777.0f && inputManager.getCursorPosition().x <= 1142.0f && inputManager.getCursorPosition().y <= 419.0f && inputManager.getCursorPosition().y >= 299.0f && isInMainMenu && !isInError) {
                 //Settings
                 isInSettings = true;
                 isInMainMenu = false;
@@ -514,7 +538,7 @@ public class App extends SimpleApplication implements ActionListener {
                 settingsGUI.setPosition(0, 0);
                 guiNode.attachChild(settingsGUI);
             }
-            if(inputManager.getCursorPosition().x >= 777.0f && inputManager.getCursorPosition().x <= 1142.0f && inputManager.getCursorPosition().y <= 187.0f && inputManager.getCursorPosition().y >= 68.0f && isInMainMenu) {
+            if(inputManager.getCursorPosition().x >= 777.0f && inputManager.getCursorPosition().x <= 1142.0f && inputManager.getCursorPosition().y <= 187.0f && inputManager.getCursorPosition().y >= 68.0f && isInMainMenu && !isInError) {
                 //Quit
                 System.exit(0);
             }
@@ -639,7 +663,7 @@ public class App extends SimpleApplication implements ActionListener {
             } else if(App.isAltCircleActive) {
                 App.secondarySelected = 1;
             } else {
-                App.player.setPlayerClass(TravelerClass.class);
+                App.blockSelected = 1;
             }
         } else if(name.equals("DoTwoAction") && isPressed) {
             if(App.isCircleActive) {
@@ -647,7 +671,7 @@ public class App extends SimpleApplication implements ActionListener {
             } else if(App.isAltCircleActive) {
                 App.secondarySelected = 2;
             } else {
-                App.player.setPlayerClass(ColdPlayerClass.class);
+                App.blockSelected = 2;
             }
         } else if(name.equals("DoThreeAction") && isPressed) {
             if(App.isCircleActive) {
@@ -655,7 +679,7 @@ public class App extends SimpleApplication implements ActionListener {
             } else if(App.isAltCircleActive) {
                 App.secondarySelected = 3;
             } else {
-                App.player.setPlayerClass(PhysicsPlayerClass.class);
+                App.blockSelected = 3;
             }
         } else if(name.equals("DoFourAction") && isPressed) {
             if(App.isCircleActive) {
@@ -663,8 +687,10 @@ public class App extends SimpleApplication implements ActionListener {
             } else if(App.isAltCircleActive) {
                 App.secondarySelected = 4;
             } else {
-                App.player.setPlayerClass(CompSciPlayerClass.class);
+                App.blockSelected = 4;
             }
+        } else if(name.equals("Place_Block") && isPressed) {
+            
         }
         
         /*else if (name.equals("Play_Sound")) {
@@ -680,7 +706,7 @@ public class App extends SimpleApplication implements ActionListener {
 /**
  * This Class Is Responsible For Generating Rooms For Everything. Basically Just Abstracting Creating A Room
  * @apiNote The Reason It Is Called RoomGenerator Is Because I Originally Wanted A 3D Rouge-Like, But Decided Against It
- * @version 1.5.2 Beta
+ * @version 1.5.2
  */
 class RoomGenerator{
     public AssetManager assetManager;
@@ -935,14 +961,16 @@ class InteractionController {
  * @see #Utils
 */
 class Utils {
-    private static final String PROJECT_URL = "https://mnxrzxedpwbfzkcunqtp.supabase.co/rest/v1/Servers";
-    private static final String API_KEY = "sb_publishable_BSGqs8kQhXzDisKHDdWr_w_oQoIwuEN";
     /**An Enumerator For Every Block ID. */
     enum BlockID {
-        /**A Test Block */
-        TEST("Textures/BlockTexture.png"),
-        /**Another Test Block */
-        TEST2("Textures/SomeTexture.png");
+        /**The Adhesive Block In JBattle */
+        Adhesive("Textures/AdhesiveBlock.png"),
+        /**The Elastic Block In JBattle */
+        Elastic("Textures/ElasticBlock.png"),
+        /**The Potassium-40 Block In JBattle */
+        Radioactive("Textures/Potassion40Block.png"),
+        /**The Moving/Emeny Block In JBattle */
+        MovBlock("Textures/MovingBlock.png");
 
         /**PNG/Texture Associated With An ID */
         private final String idTex;
@@ -958,7 +986,7 @@ class Utils {
          * @return The Texture Associated With An ID
          */
         public String getValue() {
-            return idTex;
+            return this.idTex;
         }
         /**
          * Returns The Entry In BlockID With The Specified Value, Or Null If None Exist.
@@ -993,44 +1021,41 @@ class Utils {
      * @param bid The BlockID To Give The Block (See BlockID Enum)
      * @see BlockID
      */
-    public void placeBlock(int x, int y, int z, int width, int length, int height, BlockID bid) {
+    public static void placeBlock(int x, int y, int z, int width, int length, int height, BlockID bid) {
         //Geometry blockGeom = new Geometry();
     }
-    public void createMap(String toCreate) {
-        if(toCreate.equals("StoryMap")) {
-            //Load Story Maps
-        } else if(toCreate.equals("MultiplayerMap")) {
-            //Load Some Random Map IDK
-        }
-    }
     /**
-     * A Method I Intend To Use At Some Point...
-     * @param keyVal The Value To Put Into The Database
-     * @return The Http Response
-     * @throws Exception Yeah A Lot Of Things Can Throw An Exception
+     * Plays A Sound File. Can Do Both Instance And Regular Sound Playing.
+     * @param rootNode The Root Node, Passed From The SimpleApplication
+     * @param am The AssetManager, Passed From The SimpleApplication.
+     * @param soundFileName The Name Of The File To Play.
+     * @param pos If The Sound Is Positional, And Will Be Affected By Distance.
+     * @param loop If The Track Should Loop.
+     * @param vol The Volume Of The Track.
+     * @param isInst If The Sound Should Be An Instance. Instance Sounds Can't Be Managed, But Can Overlap.
+     * @param soundX (Optional) The X Position Of The Sound, Should It Be Positional.
+     * @param soundY (Optional) The Y Position Of The Sound, Should It Be Positional.
+     * @param soundZ (Optional) The Z Position Of The Sound, Should It Be Positional.
+     * @throws IllegalArgumentException If The Volume Is Negative.
+     * @throws AssetNotFoundException If The File Name Passed Is Not Found.
      */
-    public String insert(String keyVal) throws Exception {
-        try(CloseableHttpClient client = HttpClients.createDefault()) {
-            HttpPost request = new HttpPost(PROJECT_URL);
-            request.setHeader("apikey", API_KEY);
-            request.setHeader("Authorization", "Bearer " + API_KEY);
-            request.setHeader("Content-Type", "application/json");
-            String json = String.format("{\"Server_Test\": %s}", keyVal);
-            request.setEntity(new StringEntity(json));
-            return client.execute(request, response -> EntityUtils.toString(response.getEntity()));
+    public static void playSound(Node rootNode, AssetManager am, String soundFileName, boolean pos, boolean loop, float vol, boolean isInst, Optional<Float> soundX, Optional<Float> soundY, Optional<Float> soundZ) throws IllegalArgumentException, AssetNotFoundException {
+        if(am.loadAsset(soundFileName) == null) {
+            throw new AssetNotFoundException("The Passed File Name: " + soundFileName + " Was Not Found. Check Spelling And File Paths.");
         }
-    }
-    /**
-     * Another Method I Intend To Use Someday...
-     * @return The Response
-     * @throws Exception If Something Goes Wrong
-     */
-    public String getAll() throws Exception {
-        try(CloseableHttpClient client = HttpClients.createDefault()) {
-            HttpGet request = new HttpGet(PROJECT_URL);
-            request.setHeader("apikey", API_KEY);
-            request.setHeader("Authorization", "Bearer " + API_KEY);
-            return client.execute(request, response -> EntityUtils.toString(response.getEntity())); 
+        AudioNode audNode = new AudioNode(am, soundFileName, DataType.Buffer);
+        audNode.setPositional(pos);
+        audNode.setLooping(loop);
+        if(vol < 0f) {
+            throw new IllegalArgumentException("The Volume Value: " + Float.toString(vol) + " Is Less Than The Minimum Volume (0f). Check The Volume.");
+        }
+        audNode.setVolume(vol);
+        rootNode.attachChild(audNode);
+        if(isInst) {
+            audNode.playInstance();
+        } else {
+            audNode.setLocalTranslation(soundX.orElse(0f), soundY.orElse(0f), soundZ.orElse(0f));
+            audNode.play();
         }
     }
 }
