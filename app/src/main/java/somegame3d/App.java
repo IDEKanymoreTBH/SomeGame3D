@@ -14,6 +14,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Random;
+import java.util.UUID;
 
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
@@ -41,6 +43,8 @@ import com.jme3.texture.Texture;
 import com.jme3.ui.Picture;
 import com.simsilica.lemur.GuiGlobals;
 import somegame3d.IATFileInterpreter.IATFileInterpretMode;
+import somegame3d.Utils.BlockID;
+
 import com.jme3.material.Material;
 import com.jme3.material.RenderState;
 import com.jme3.material.RenderState.FaceCullMode;
@@ -130,6 +134,10 @@ public class App extends SimpleApplication implements ActionListener {
     public static boolean isInStoryMode = false;
     public static boolean isCircleActive = false;
     public static boolean isAltCircleActive = false;
+    public static Vector3f placeLoc = null;
+    public static Vector3f testThing = null;
+    public static Geometry placeGeom = null;
+    public static final int BLOCK_SIZE = 2;
     //:)
     public static int blockSelected = 1;
     public static int primarySelected = 1;
@@ -338,7 +346,7 @@ public class App extends SimpleApplication implements ActionListener {
         inputManager.addMapping("DoTwoAction", new KeyTrigger(KeyInput.KEY_2));
         inputManager.addMapping("DoThreeAction", new KeyTrigger(KeyInput.KEY_3));
         inputManager.addMapping("DoFourAction", new KeyTrigger(KeyInput.KEY_4));
-        inputManager.addMapping("Place_Block", new KeyTrigger(KeyInput.KEY_F));
+        inputManager.addMapping("Place_Block", new KeyTrigger(KeyInput.KEY_F), new MouseButtonTrigger(MouseInput.BUTTON_RIGHT));
         inputManager.addListener(this, "MoveForward", "Jump", "ToggleFPS", "MoveBackwards", "StrafeLeft", "StrafeRight", "Sprint", "SnapshotCoords", "Crouch", "Set_FlyHack", "Interact", "Pause", "Toggle_Flashlight", "Activate_Circle", "Activate_Alt_Circle", "DoOneAction", "DoTwoAction", "DoThreeAction", "DoFourAction", "Place_Block");
         //(Test) Object To Test Interactables
         targetGeometry = new Geometry("Test_Interactable", new Box(0.1f, 0.5f, 0.4f));
@@ -422,6 +430,9 @@ public class App extends SimpleApplication implements ActionListener {
         CollisionResults results = new CollisionResults();
         rootNode.collideWith(ray, results);
         if(results.size() > 0) {
+            placeGeom = results.getClosestCollision().getGeometry();
+            placeLoc = results.getClosestCollision().getContactPoint();
+            testThing = results.getClosestCollision().getContactNormal();
             if((results.getClosestCollision().getGeometry() == targetGeometry) && (cam.getLocation().distanceSquared(results.getClosestCollision().getGeometry().getWorldTranslation()) <= 25)) {
                     guiNode.attachChild(interactGui);
                     intCont.updateValue("Shop1.obj", true);
@@ -690,17 +701,56 @@ public class App extends SimpleApplication implements ActionListener {
                 App.blockSelected = 4;
             }
         } else if(name.equals("Place_Block") && isPressed) {
-            
+            System.out.println("Contact Point: " + placeLoc.toString());
+            System.out.println("Normalized Contact Face: " + testThing.toString());
+            if(placeLoc != null) {
+                Utils.BlockID bId = switch(blockSelected) {
+                    case 1 -> BlockID.Adhesive;
+                    case 2 -> BlockID.Elastic;
+                    case 3 -> BlockID.Radioactive;
+                    case 4 -> BlockID.MovBlock;
+                    default -> BlockID.pickRandom();
+                };
+                int xOffset = 0;
+                int yOffset = 0;
+                int zOffset = 0;
+                if(testThing.x > 0.0f) {
+                    xOffset = (int)placeGeom.getLocalTranslation().x + (BLOCK_SIZE);
+                    yOffset = (int)placeLoc.y;
+                    zOffset = (int)placeLoc.z;
+                    System.out.println("Block Placed On +X Side");
+                } else if(testThing.y > 0.0f) {
+                    //xOffset = (int)placeGeom.getLocalTranslation().x;
+                    xOffset = (int)placeLoc.x;
+                    yOffset = (int)placeGeom.getLocalTranslation().y + (BLOCK_SIZE);
+                    //zOffset = (int)placeGeom.getLocalTranslation().z;
+                    zOffset = (int)placeLoc.z;
+                    System.out.println("Block Placed On +Y Side");
+                } else if(testThing.z > 0.0f) {
+                    xOffset = (int)placeLoc.x;
+                    yOffset = (int)placeLoc.y;
+                    zOffset = (int)placeGeom.getLocalTranslation().z + (BLOCK_SIZE);
+                    System.out.println("Block Placed On +Z Side");
+                } else if(testThing.x < 0.0f) {
+                    xOffset = (int)placeGeom.getLocalTranslation().x - (BLOCK_SIZE);
+                    yOffset = (int)placeLoc.y + (BLOCK_SIZE/2);
+                    zOffset = (int)placeLoc.z + (BLOCK_SIZE/2);
+                    System.out.println("Block Placed On -X Side");
+                } else if(testThing.y < 0.0f) {
+                    xOffset = (int)placeLoc.x;
+                    yOffset = (int)placeGeom.getLocalTranslation().y - (BLOCK_SIZE);
+                    zOffset = (int)placeLoc.z;
+                    System.out.println("Block Placed On -Y Side");
+                } else if(testThing.z < 0.0f) {
+                    xOffset = (int)placeLoc.x;
+                    yOffset = (int)placeLoc.y;
+                    zOffset = (int)placeGeom.getLocalTranslation().z - (BLOCK_SIZE);
+                    System.out.println("Block Placed On -Z Side");
+                }
+                System.out.println(String.format("Actual Block Placement Position: (%d, %d, %d)", xOffset, yOffset, zOffset));
+                Utils.placeBlock(xOffset, yOffset, zOffset, BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE, bId, assetManager, rootNode, bulletAppState);
+            }
         }
-        
-        /*else if (name.equals("Play_Sound")) {
-            AudioNode audioPlayer = new AudioNode(assetManager, "pop-402324.wav", DataType.Buffer);
-            audioPlayer.setPositional(false);
-            audioPlayer.setLooping(false);
-            audioPlayer.setVolume(2);
-            this.rootNode.attachChild(audioPlayer);
-            audioPlayer.playInstance();
-        }*/
     }
 }
 /**
@@ -968,7 +1018,7 @@ class Utils {
         /**The Elastic Block In JBattle */
         Elastic("Textures/ElasticBlock.png"),
         /**The Potassium-40 Block In JBattle */
-        Radioactive("Textures/Potassion40Block.png"),
+        Radioactive("Textures/Potassium40Block.png"),
         /**The Moving/Emeny Block In JBattle */
         MovBlock("Textures/MovingBlock.png");
 
@@ -1001,6 +1051,15 @@ class Utils {
             }
             return null;
         }
+        public static BlockID pickRandom() {
+            int randInt = (int)(new Random().nextLong(1, 5));
+            return switch(randInt) {
+                case 1 -> BlockID.Adhesive;
+                case 2 -> BlockID.Elastic;
+                case 3 -> BlockID.MovBlock;
+                default -> BlockID.Radioactive;
+            };
+        }
     }
     /**
      * Constructs A New Utils Object. You Shouldn't Do This
@@ -1011,18 +1070,36 @@ class Utils {
         throw new UnsupportedOperationException("This Is A Utils Class. You Cannot Initialize It");
     }
     /**
-     * Places A Block.
-     * @param x The X To Place It At
-     * @param y The Y To Place It At
-     * @param z The Z To Place It At
-     * @param width The Total Width To Give The Block
-     * @param length The Total Length To Give The Block
-     * @param height The Total Height To Give The Block
-     * @param bid The BlockID To Give The Block (See BlockID Enum)
-     * @see BlockID
+     * Places A Block At The Specified Coords With The Specified Dimensions And Texture.
+     * @param x The X Position To Place The Block At
+     * @param y The Y Position To Place The Block At
+     * @param z The Z Position To Place The Block At
+     * @param width The Total Width Of The Block
+     * @param length The Total Length Of The Block
+     * @param height The Total Height Of The Block
+     * @param bid The Block ID To Use For A Texture
+     * @param assetManager The Original AssetManager From App
+     * @param rootNode The Original RootNode From App
+     * @param bulletAppState The Original BulletAppState From App
      */
-    public static void placeBlock(int x, int y, int z, int width, int length, int height, BlockID bid) {
-        //Geometry blockGeom = new Geometry();
+    public static void placeBlock(int x, int y, int z, int width, int length, int height, BlockID bid, AssetManager assetManager, Node rootNode, BulletAppState bulletAppState) {
+        Geometry blockGeom = new Geometry(UUID.randomUUID().toString(), new Box(width/2, height/2, length/2));
+        blockGeom.setLocalTranslation(x, y, z);
+        blockGeom.updateModelBound();
+        blockGeom.updateGeometricState();
+        Material blockMat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
+        blockGeom.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
+        blockMat.setBoolean("UseMaterialColors", true);
+        blockMat.setColor("Diffuse", ColorRGBA.Gray);
+        Texture tex = assetManager.loadTexture(bid.getValue());
+        tex.setMagFilter(Texture.MagFilter.Nearest);
+        tex.setMinFilter(Texture.MinFilter.Trilinear);
+        blockMat.setTexture("DiffuseMap", tex);
+        blockGeom.setMaterial(blockMat);
+        rootNode.attachChild(blockGeom);
+        RigidBodyControl blockPhysics = new RigidBodyControl(new BoxCollisionShape(new Vector3f(width/2, height/2, length/2)), 0f);
+        blockGeom.addControl(blockPhysics);
+        bulletAppState.getPhysicsSpace().add(blockPhysics);
     }
     /**
      * Plays A Sound File. Can Do Both Instance And Regular Sound Playing.
