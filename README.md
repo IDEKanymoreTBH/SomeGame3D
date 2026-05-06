@@ -111,3 +111,11 @@ Here, The Text Parameter Represents The Path To The Texture You Desire. This Mus
     - 50% Increase In Speed For The Player.
     - Fixed Pause Menu Related Bugs.
     - Pause Menu Now Has Quit Button.
+- v0.2.1b:
+    - Hmm What If I Do This?
+    - Removed Database Stuff In Favor Of WebSockets For Servers :)
+    - Actually Added All Blocks
+    - Added An Error If The App Doesn't Fullscreen Properly
+    - Added Block Selection Thing
+    - Yes I Am Basically Just Going Through My Latest Git Commit Cause IDK What I Added
+    - Thinking About Making A Texture Atlas Cause There's A Lot Of Em.
