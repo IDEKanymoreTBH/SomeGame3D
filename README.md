@@ -119,3 +119,7 @@ Here, The Text Parameter Represents The Path To The Texture You Desire. This Mus
     - Added Block Selection Thing
     - Yes I Am Basically Just Going Through My Latest Git Commit Cause IDK What I Added
     - Thinking About Making A Texture Atlas Cause There's A Lot Of Em.
+- v0.2.1c:
+    - Gave Up On The Blocks Idea
+    - Yeah I Need Another Creative Idea
+    - So, DW About All The Block Placement Code For Now
