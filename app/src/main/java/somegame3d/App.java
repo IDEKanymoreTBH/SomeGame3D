@@ -17,12 +17,6 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
 
-import org.apache.hc.client5.http.classic.methods.HttpGet;
-import org.apache.hc.client5.http.classic.methods.HttpPost;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.HttpClients;
-import org.apache.hc.core5.http.io.entity.EntityUtils;
-import org.apache.hc.core5.http.io.entity.StringEntity;
 import com.jme3.app.SimpleApplication;
 import com.jme3.asset.AssetManager;
 import com.jme3.asset.AssetNotFoundException;
@@ -41,12 +35,9 @@ import com.jme3.shadow.SpotLightShadowRenderer;
 import com.jme3.system.AppSettings;
 import com.jme3.texture.Texture;
 import com.jme3.ui.Picture;
-import com.simsilica.lemur.GuiGlobals;
-import somegame3d.IATFileInterpreter.IATFileInterpretMode;
-import somegame3d.Utils.BlockID;
-
 import com.jme3.material.Material;
 import com.jme3.material.RenderState;
+import com.jme3.material.RenderState.BlendMode;
 import com.jme3.material.RenderState.FaceCullMode;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
@@ -65,18 +56,22 @@ import com.jme3.bullet.collision.shapes.BoxCollisionShape;
 import com.jme3.bullet.control.BetterCharacterControl;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.collision.CollisionResults;
-import tonegod.gui.controls.windows.AlertBox;
-import tonegod.gui.core.Screen;
 import com.jme3.scene.control.BillboardControl;
 import com.jme3.font.BitmapFont;
 import com.jme3.font.BitmapText;
 import com.jme3.post.ssao.SSAOFilter;
 import com.jme3.post.FilterPostProcessor;
+
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+
+import com.simsilica.lemur.GuiGlobals;
+
+import tonegod.gui.controls.windows.AlertBox;
+import tonegod.gui.core.Screen;
 /**The Main App That Does Everything */
 public class App extends SimpleApplication implements ActionListener {
     /**Controls The Interactions A Player Can Do */
@@ -139,7 +134,7 @@ public class App extends SimpleApplication implements ActionListener {
     public static Geometry placeGeom = null;
     public static final int BLOCK_SIZE = 2;
     //:)
-    public static int blockSelected = 1;
+    public static int orbSelected = 1;
     public static int primarySelected = 1;
     public static int secondarySelected = 1;
     //FPS Stuff
@@ -164,7 +159,7 @@ public class App extends SimpleApplication implements ActionListener {
     Picture testGui = new Picture("FPSHand");
     Picture attackCircleGUI = new Picture("AttackCircle");
     Picture altAttackCircleGUI = new Picture("AltAttackCircle");
-    Picture blockSelectPic = new Picture("Block_Selected");
+    Picture orbSelectPic = new Picture("Orb_Selected");
     RoomGenerator gen;
     //The Screen, Specifically Designed For ToneGodGUI
     public Geometry targetGeometry;
@@ -252,10 +247,10 @@ public class App extends SimpleApplication implements ActionListener {
         altAttackCircleGUI.setWidth(settings.getWidth());
         altAttackCircleGUI.setHeight(settings.getHeight());
         altAttackCircleGUI.setPosition(0, 0);
-        blockSelectPic.setImage(assetManager, "Textures/BlockSelect1.png", true);
-        blockSelectPic.setWidth(settings.getWidth());
-        blockSelectPic.setHeight(settings.getHeight());
-        blockSelectPic.setPosition(0, 0);
+        orbSelectPic.setImage(assetManager, "Textures/MassOrb™.png", true);
+        orbSelectPic.setWidth(settings.getWidth());
+        orbSelectPic.setHeight(settings.getHeight());
+        orbSelectPic.setPosition(0, 0);
         setDisplayStatView(false);
         setDisplayFps(fpsShown);
         fpsText.setColor(ColorRGBA.White);
@@ -360,7 +355,7 @@ public class App extends SimpleApplication implements ActionListener {
         RigidBodyControl testObjControl = new RigidBodyControl(new BoxCollisionShape(new Vector3f(((Box) targetGeometry.getMesh()).getXExtent(), ((Box) targetGeometry.getMesh()).getYExtent(), ((Box) targetGeometry.getMesh()).getZExtent())), 0f);
         targetGeometry.addControl(testObjControl);
         bulletAppState.getPhysicsSpace().add(testObjControl);
-        IATFileInterpreter iatfi = new IATFileInterpreter(IATFileInterpretMode.IATFILE_V1, rootNode, assetManager, bulletAppState);
+        IATFileInterpreter iatfi = new IATFileInterpreter(IATFileInterpreter.IATFileInterpretMode.IATFILE_V1, rootNode, assetManager, bulletAppState);
         iatfi.interpret("MapFiles/TestMap.iat");
         flyCam.setEnabled(false);
         inputManager.setCursorVisible(true);
@@ -391,7 +386,7 @@ public class App extends SimpleApplication implements ActionListener {
         testGui.setImage(assetManager, texturePath, true);
         attackCircleGUI.setImage(assetManager, "Textures/AttackCircle" + Integer.toString(primarySelected) + ".png", true);
         altAttackCircleGUI.setImage(assetManager, "Textures/AltAttackCircle" + Integer.toString(secondarySelected) + ".png", true);
-        blockSelectPic.setImage(assetManager, "Textures/BlockSelect" + Integer.toString(blockSelected) + ".png", true);
+        orbSelectPic.setImage(assetManager, "Textures/OrbSelect" + Integer.toString(orbSelected) + ".png", true);
         if(isCircleActive) {
             guiNode.attachChild(attackCircleGUI);
             guiNode.detachChild(altAttackCircleGUI);
@@ -406,7 +401,7 @@ public class App extends SimpleApplication implements ActionListener {
         } else {
             guiNode.detachChild(altAttackCircleGUI);
         }
-        guiNode.attachChild(blockSelectPic);
+        guiNode.attachChild(orbSelectPic);
         flashlight.setPosition(cam.getLocation());
         flashlight.setDirection(cam.getDirection().normalize());
         guiNode.attachChild(testGui);
@@ -674,7 +669,7 @@ public class App extends SimpleApplication implements ActionListener {
             } else if(App.isAltCircleActive) {
                 App.secondarySelected = 1;
             } else {
-                App.blockSelected = 1;
+                App.orbSelected = 1;
             }
         } else if(name.equals("DoTwoAction") && isPressed) {
             if(App.isCircleActive) {
@@ -682,7 +677,7 @@ public class App extends SimpleApplication implements ActionListener {
             } else if(App.isAltCircleActive) {
                 App.secondarySelected = 2;
             } else {
-                App.blockSelected = 2;
+                App.orbSelected = 2;
             }
         } else if(name.equals("DoThreeAction") && isPressed) {
             if(App.isCircleActive) {
@@ -690,7 +685,7 @@ public class App extends SimpleApplication implements ActionListener {
             } else if(App.isAltCircleActive) {
                 App.secondarySelected = 3;
             } else {
-                App.blockSelected = 3;
+                App.orbSelected = 3;
             }
         } else if(name.equals("DoFourAction") && isPressed) {
             if(App.isCircleActive) {
@@ -698,58 +693,66 @@ public class App extends SimpleApplication implements ActionListener {
             } else if(App.isAltCircleActive) {
                 App.secondarySelected = 4;
             } else {
-                App.blockSelected = 4;
+                App.orbSelected = 4;
             }
         } else if(name.equals("Place_Block") && isPressed) {
-            System.out.println("Contact Point: " + placeLoc.toString());
-            System.out.println("Normalized Contact Face: " + testThing.toString());
-            if(placeLoc != null) {
-                Utils.BlockID bId = switch(blockSelected) {
-                    case 1 -> BlockID.Adhesive;
-                    case 2 -> BlockID.Elastic;
-                    case 3 -> BlockID.Radioactive;
-                    case 4 -> BlockID.MovBlock;
-                    default -> BlockID.pickRandom();
-                };
-                int xOffset = 0;
-                int yOffset = 0;
-                int zOffset = 0;
-                if(testThing.x > 0.0f) {
-                    xOffset = (int)placeGeom.getLocalTranslation().x + (BLOCK_SIZE);
-                    yOffset = (int)placeLoc.y;
-                    zOffset = (int)placeLoc.z;
-                    System.out.println("Block Placed On +X Side");
-                } else if(testThing.y > 0.0f) {
-                    //xOffset = (int)placeGeom.getLocalTranslation().x;
-                    xOffset = (int)placeLoc.x;
-                    yOffset = (int)placeGeom.getLocalTranslation().y + (BLOCK_SIZE);
-                    //zOffset = (int)placeGeom.getLocalTranslation().z;
-                    zOffset = (int)placeLoc.z;
-                    System.out.println("Block Placed On +Y Side");
-                } else if(testThing.z > 0.0f) {
-                    xOffset = (int)placeLoc.x;
-                    yOffset = (int)placeLoc.y;
-                    zOffset = (int)placeGeom.getLocalTranslation().z + (BLOCK_SIZE);
-                    System.out.println("Block Placed On +Z Side");
-                } else if(testThing.x < 0.0f) {
-                    xOffset = (int)placeGeom.getLocalTranslation().x - (BLOCK_SIZE);
-                    yOffset = (int)placeLoc.y + (BLOCK_SIZE/2);
-                    zOffset = (int)placeLoc.z + (BLOCK_SIZE/2);
-                    System.out.println("Block Placed On -X Side");
-                } else if(testThing.y < 0.0f) {
-                    xOffset = (int)placeLoc.x;
-                    yOffset = (int)placeGeom.getLocalTranslation().y - (BLOCK_SIZE);
-                    zOffset = (int)placeLoc.z;
-                    System.out.println("Block Placed On -Y Side");
-                } else if(testThing.z < 0.0f) {
-                    xOffset = (int)placeLoc.x;
-                    yOffset = (int)placeLoc.y;
-                    zOffset = (int)placeGeom.getLocalTranslation().z - (BLOCK_SIZE);
-                    System.out.println("Block Placed On -Z Side");
-                }
-                System.out.println(String.format("Actual Block Placement Position: (%d, %d, %d)", xOffset, yOffset, zOffset));
-                Utils.placeBlock(xOffset, yOffset, zOffset, BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE, bId, assetManager, rootNode, bulletAppState);
-            }
+            // System.out.println("Contact Point: " + placeLoc.toString());
+            // System.out.println("Normalized Contact Face: " + testThing.toString());
+            // if(placeLoc != null) {
+            //     Utils.BlockID bId = switch(orbSelected) {
+            //         case 1 -> BlockID.Adhesive;
+            //         case 2 -> BlockID.Elastic;
+            //         case 3 -> BlockID.Radioactive;
+            //         case 4 -> BlockID.MovBlock;
+            //         default -> BlockID.pickRandom();
+            //     };
+            //     int xOffset = 0;
+            //     int yOffset = 0;
+            //     int zOffset = 0;
+            //     if(testThing.x > 0.0f) {
+            //         xOffset = (int)placeGeom.getLocalTranslation().x + (BLOCK_SIZE);
+            //         yOffset = (int)placeLoc.y;
+            //         zOffset = (int)placeLoc.z;
+            //         System.out.println("Block Placed On +X Side");
+            //     } else if(testThing.y > 0.0f) {
+            //         //xOffset = (int)placeGeom.getLocalTranslation().x;
+            //         xOffset = (int)placeLoc.x;
+            //         yOffset = (int)placeGeom.getLocalTranslation().y + (BLOCK_SIZE);
+            //         //zOffset = (int)placeGeom.getLocalTranslation().z;
+            //         zOffset = (int)placeLoc.z;
+            //         System.out.println("Block Placed On +Y Side");
+            //     } else if(testThing.z > 0.0f) {
+            //         xOffset = (int)placeLoc.x;
+            //         yOffset = (int)placeLoc.y;
+            //         zOffset = (int)placeGeom.getLocalTranslation().z + (BLOCK_SIZE);
+            //         System.out.println("Block Placed On +Z Side");
+            //     } else if(testThing.x < 0.0f) {
+            //         xOffset = (int)placeGeom.getLocalTranslation().x - (BLOCK_SIZE);
+            //         yOffset = (int)placeLoc.y + (BLOCK_SIZE/2);
+            //         zOffset = (int)placeLoc.z + (BLOCK_SIZE/2);
+            //         System.out.println("Block Placed On -X Side");
+            //     } else if(testThing.y < 0.0f) {
+            //         xOffset = (int)placeLoc.x;
+            //         yOffset = (int)placeGeom.getLocalTranslation().y - (BLOCK_SIZE);
+            //         zOffset = (int)placeLoc.z;
+            //         System.out.println("Block Placed On -Y Side");
+            //     } else if(testThing.z < 0.0f) {
+            //         xOffset = (int)placeLoc.x;
+            //         yOffset = (int)placeLoc.y;
+            //         zOffset = (int)placeGeom.getLocalTranslation().z - (BLOCK_SIZE);
+            //         System.out.println("Block Placed On -Z Side");
+            //     }
+            //     System.out.println(String.format("Actual Block Placement Position: (%d, %d, %d)", xOffset, yOffset, zOffset));
+            //     Utils.placeBlock(xOffset, yOffset, zOffset, BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE, bId, assetManager, rootNode, bulletAppState);
+            // }
+            Utils.OrbID oid = switch(orbSelected) {
+                case 1 -> Utils.OrbID.Mass;
+                case 2 -> Utils.OrbID.Radioactive;
+                case 3 -> Utils.OrbID.Teleport;
+                case 4 -> Utils.OrbID.AutoMove;
+                default -> Utils.OrbID.pickRandom();
+            };
+            Utils.throwOrb(cam.getDirection(), cam.getLocation(), new Vector3f(2, 2, 2), oid, assetManager, rootNode, bulletAppState, 15f);
         }
     }
 }
@@ -1061,6 +1064,41 @@ class Utils {
             };
         }
     }
+    enum OrbID {
+        Mass("Textures/MassOrb™.png"),
+        Radioactive("Textures/Cesium138.png"),
+        Teleport("Textures/TeleOrb™.png"),
+        AutoMove("Textures/PyAutoGUI.pressOrb™.png");
+
+        private final String idTex;
+
+        private OrbID(String texName) {
+            this.idTex = texName;
+        }
+
+        public String getValue() {
+            return this.idTex;
+        }
+
+        public static OrbID getForValue(String val) {
+            for(OrbID orb : values()) {
+                if(orb.getValue().equals(val)) {
+                    return orb;
+                }
+            }
+            return null;
+        }
+
+        public static OrbID pickRandom() {
+            int randInt = (int)(new Random().nextLong(1, 5));
+            return switch(randInt) {
+                case 1 -> OrbID.Mass;
+                case 2 -> OrbID.Radioactive;
+                case 3 -> OrbID.Teleport;
+                default -> OrbID.AutoMove;
+            };
+        }
+    }
     /**
      * Constructs A New Utils Object. You Shouldn't Do This
      * @throws UnsupportedOperationException Because This Operation Is NOT Supported
@@ -1100,6 +1138,27 @@ class Utils {
         RigidBodyControl blockPhysics = new RigidBodyControl(new BoxCollisionShape(new Vector3f(width/2, height/2, length/2)), 0f);
         blockGeom.addControl(blockPhysics);
         bulletAppState.getPhysicsSpace().add(blockPhysics);
+    }
+    public static void throwOrb(Vector3f direction, Vector3f position, Vector3f size, OrbID oid, AssetManager assetManager, Node rootNode, BulletAppState bas, float force) {
+        Geometry geo = new Geometry(UUID.randomUUID().toString(), new Box(size.x/2, size.y/2, size.z/2));
+        geo.setLocalTranslation(position.add(direction));
+        Material mat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
+        mat.setTexture("DiffuseMap", assetManager.loadTexture(oid.getValue()));
+        mat.setBoolean("UseMaterialColors", true);
+        mat.setColor("Diffuse", ColorRGBA.Gray);
+        mat.setColor("Ambient", ColorRGBA.DarkGray);
+        geo.setShadowMode(ShadowMode.CastAndReceive);
+        mat.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
+        mat.getAdditionalRenderState().setFaceCullMode(FaceCullMode.Off);
+        geo.setMaterial(mat);
+        geo.setQueueBucket(RenderQueue.Bucket.Transparent);
+        RigidBodyControl rbc = new RigidBodyControl(new BoxCollisionShape(size.divide(2)), 1f);
+        geo.addControl(rbc);
+        bas.getPhysicsSpace().add(rbc);
+        rootNode.attachChild(geo);
+        rootNode.updateGeometricState();
+        rbc.activate();
+        rbc.setLinearVelocity(direction.mult(force));
     }
     /**
      * Plays A Sound File. Can Do Both Instance And Regular Sound Playing.
