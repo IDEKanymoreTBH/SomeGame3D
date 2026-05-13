@@ -123,3 +123,7 @@ Here, The Text Parameter Represents The Path To The Texture You Desire. This Mus
     - Gave Up On The Blocks Idea
     - Yeah I Need Another Creative Idea
     - So, DW About All The Block Placement Code For Now
+- v0.2.2:
+    - Added Some Orbs That Can Actually Be Thrown. They Don't Always Throw At Good Angles Though.
+    - Footstep Plays Sometimes If You Walk For Long Enough. Took A While Cause No MP3 Loader :(
+    - Oh Yeah WebSocket Stuff Is More Fleshed Out. Not Here Though.
