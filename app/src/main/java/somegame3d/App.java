@@ -21,6 +21,7 @@ import com.jme3.app.SimpleApplication;
 import com.jme3.asset.AssetManager;
 import com.jme3.asset.AssetNotFoundException;
 import com.jme3.audio.AudioNode;
+import com.jme3.audio.plugins.OGGLoader;
 import com.jme3.audio.AudioData.DataType;
 import com.jme3.light.AmbientLight;
 import com.jme3.light.SpotLight;
@@ -133,6 +134,7 @@ public class App extends SimpleApplication implements ActionListener {
     public static Vector3f testThing = null;
     public static Geometry placeGeom = null;
     public static final int BLOCK_SIZE = 2;
+    public static int walkSoundTimer = 0;
     //:)
     public static int orbSelected = 1;
     public static int primarySelected = 1;
@@ -317,7 +319,6 @@ public class App extends SimpleApplication implements ActionListener {
         player.getControl().setJumpForce(new Vector3f(0, 500, 0));
         playerNode.addControl(player.getControl());
         bulletAppState.getPhysicsSpace().add(player.getControl());
-
         //Position Player above floor
         playerNode.setLocalTranslation(0, capsuleHeight / 2 + 0.01f, 0);
         playerNode.setLocalTranslation(0, 0.3f + capsuleHeight / 2 + 0.01f, 0);
@@ -359,6 +360,7 @@ public class App extends SimpleApplication implements ActionListener {
         iatfi.interpret("MapFiles/TestMap.iat");
         flyCam.setEnabled(false);
         inputManager.setCursorVisible(true);
+        assetManager.registerLoader(OGGLoader.class);
         //Set Camera Fly Speed
         flyCam.setMoveSpeed(20);
     }
@@ -373,6 +375,15 @@ public class App extends SimpleApplication implements ActionListener {
             FPSText.setText("FPS: " + Integer.toString(frameCount));
             frameCount = 0;
             fpsTimer = 0;
+        }
+        //Play Walking Sounds
+        if(moveForward || moveBackwards || strafeLeft || strafeRight) {
+            if(walkSoundTimer >= 30) {
+                Utils.playSound(rootNode, assetManager, "Sounds/footstep.ogg", false, false, 20, true, Optional.empty(), Optional.empty(), Optional.empty());
+                walkSoundTimer = 0;
+            } else {
+                walkSoundTimer++;
+            }
         }
         guiNode.attachChild(FPSText);
         String texturePath = switch(player.getPlayerClass().getName()) {
@@ -1176,9 +1187,6 @@ class Utils {
      * @throws AssetNotFoundException If The File Name Passed Is Not Found.
      */
     public static void playSound(Node rootNode, AssetManager am, String soundFileName, boolean pos, boolean loop, float vol, boolean isInst, Optional<Float> soundX, Optional<Float> soundY, Optional<Float> soundZ) throws IllegalArgumentException, AssetNotFoundException {
-        if(am.loadAsset(soundFileName) == null) {
-            throw new AssetNotFoundException("The Passed File Name: " + soundFileName + " Was Not Found. Check Spelling And File Paths.");
-        }
         AudioNode audNode = new AudioNode(am, soundFileName, DataType.Buffer);
         audNode.setPositional(pos);
         audNode.setLooping(loop);

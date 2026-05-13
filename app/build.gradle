@@ -35,6 +35,7 @@ dependencies {
     implementation "org.jmonkeyengine:jme3-effects:3.6.1-stable"
     implementation "org.apache.httpcomponents.client5:httpclient5:5.2"
     implementation "com.fasterxml.jackson.core:jackson-databind:2.17.0"
+    implementation "org.jmonkeyengine:jme3-jogg:3.6.1-stable"
     // This dependency is used by the application.
     implementation libs.guava
 }
