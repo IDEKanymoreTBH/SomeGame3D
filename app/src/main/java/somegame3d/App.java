@@ -1,6 +1,5 @@
-//TODO: Use The JINPUT API To Add Controller Support
 /*Ideas For Game:
- * - Final Idea: JBattle: JME Krunker With Blocks To Place And Orbs To Throw
+ * - Final Idea: JBattle: JME Krunker With Orbs To Throw
  * Class Ideas:
  * Traveler: Nothing But Fists. Twice As Fast As Everyone Else.
  * The Hyperborean Henchman: Uses Ice Spells To Destroy Opponents. Strongly Affected By The Boiling Befuddlement And RandEvents.Solar_Flare.
@@ -64,8 +63,6 @@ import com.jme3.post.ssao.SSAOFilter;
 import com.jme3.post.FilterPostProcessor;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -1509,7 +1506,7 @@ class TravelerClass implements IPlayerClass {
     public void doPrimaryAttack() {
         switch(App.primarySelected) {
             case 1:
-                
+                //Do First Attack
                 break;
             case 2:
                 //Do Second Attack
