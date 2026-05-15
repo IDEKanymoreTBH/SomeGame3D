@@ -64,6 +64,8 @@ import com.jme3.post.ssao.SSAOFilter;
 import com.jme3.post.FilterPostProcessor;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -151,6 +153,7 @@ public class App extends SimpleApplication implements ActionListener {
     BitmapFont font;
     BitmapText text;
     BitmapText FPSText;
+    BitmapText healthText;
     SpotLight flashlight;
     AmbientLight amblight;
     Picture crosshair = new Picture("CrossHair");
@@ -214,6 +217,12 @@ public class App extends SimpleApplication implements ActionListener {
         FPSText.setLocalTranslation(600, settings.getHeight() - 30, 0);
         FPSText.setColor(ColorRGBA.White);
         guiNode.attachChild(text);
+        healthText = new BitmapText(font);
+        healthText.setSize(guiFont.getCharSet().getRenderedSize() + 10);
+        healthText.setText(Integer.toString(player.getHealth()));
+        healthText.setLocalTranslation(1000, settings.getHeight() - 500, 0);
+        healthText.setColor(ColorRGBA.White);
+        guiNode.attachChild(healthText);
         mainMenu = new Picture("Main_Menu");
         if(context.getSettings().isFullscreen()) {
             mainMenu.setImage(assetManager, "Textures/MainMenu.png", true);
@@ -385,6 +394,9 @@ public class App extends SimpleApplication implements ActionListener {
                 walkSoundTimer++;
             }
         }
+        //Draws The Health
+        healthText.setText(Integer.toString(player.getHealth()));
+        guiNode.attachChild(healthText);
         guiNode.attachChild(FPSText);
         String texturePath = switch(player.getPlayerClass().getName()) {
             case "somegame3d.TravelerClass" -> new TravelerClass().getTexturePath();
@@ -620,7 +632,11 @@ public class App extends SimpleApplication implements ActionListener {
             }
             if(inputManager.getCursorPosition().x >= 13.0f && inputManager.getCursorPosition().x <= 661.0f && inputManager.getCursorPosition().y <= 932.0f && inputManager.getCursorPosition().y >= 881.0f) {}
             if(isInStoryMode && !(inputManager.isCursorVisible())) {
-                System.out.println("This Method Worked!");
+                try {
+                    player.getPlayerClass().getDeclaredConstructor().newInstance().doPrimaryAttack();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
             System.out.println(Float.toString(inputManager.getCursorPosition().x).concat(", ").concat(Float.toString(inputManager.getCursorPosition().y)));
         } else if (name.equals("SnapshotCoords")) {
@@ -1481,6 +1497,7 @@ interface IPlayerClass {
     public String getTexturePath();
     public void doPrimaryAttack();
     public void doSecondaryAttack();
+    public int getHealthAddon();
 }
 class TravelerClass implements IPlayerClass {
     public String getDescription() {
@@ -1492,7 +1509,7 @@ class TravelerClass implements IPlayerClass {
     public void doPrimaryAttack() {
         switch(App.primarySelected) {
             case 1:
-                //Do First Attack
+                
                 break;
             case 2:
                 //Do Second Attack
@@ -1524,6 +1541,9 @@ class TravelerClass implements IPlayerClass {
             default:
                 throw new UnknownError("Somehow, Someway, The Primary Attack Selected Was Outside The Range Of Possible Attacks.");
         }
+    }
+    public int getHealthAddon() {
+        return 50;
     }
 }
 class ColdPlayerClass implements IPlayerClass {
@@ -1569,6 +1589,9 @@ class ColdPlayerClass implements IPlayerClass {
                 throw new UnknownError("Somehow, Someway, The Primary Attack Selected Was Outside The Range Of Possible Attacks.");
         }
     }
+    public int getHealthAddon() {
+        return 25;
+    }
 }
 class PhysicsPlayerClass implements IPlayerClass {
     public String getDescription() {
@@ -1612,6 +1635,9 @@ class PhysicsPlayerClass implements IPlayerClass {
             default:
                 throw new UnknownError("Somehow, Someway, The Primary Attack Selected Was Outside The Range Of Possible Attacks.");
         }
+    }
+    public int getHealthAddon() {
+        return 15;
     }
 }
 class CompSciPlayerClass implements IPlayerClass {
@@ -1657,6 +1683,9 @@ class CompSciPlayerClass implements IPlayerClass {
                 throw new UnknownError("Somehow, Someway, The Primary Attack Selected Was Outside The Range Of Possible Attacks.");
         }
     }
+    public int getHealthAddon() {
+        return -5;
+    }
 }
 class HotPlayerClass implements IPlayerClass {
     public String getDescription() {
@@ -1701,18 +1730,27 @@ class HotPlayerClass implements IPlayerClass {
                 throw new UnknownError("Somehow, Someway, The Primary Attack Selected Was Outside The Range Of Possible Attacks.");
         }
     }
+    public int getHealthAddon() {
+        return -10;
+    }
 }
 class PlayerObject {
     private Spatial playerSpatial;
     private BetterCharacterControl playerControl;
     private Material playerMat;
     private Class<? extends IPlayerClass> pClass;
+    private int health;
     public PlayerObject(Spatial playerSpatial, BetterCharacterControl playerControl, Material playerMat, Class<? extends IPlayerClass> pClass) {
         this.playerSpatial = playerSpatial;
         this.playerControl = playerControl;
         this.playerMat = playerMat;
         this.playerSpatial.setMaterial(this.playerMat);
         this.pClass = pClass;
+        try {
+            this.health = 120 + this.pClass.getDeclaredConstructor().newInstance().getHealthAddon();
+        } catch(Exception e) {
+            this.health = 120;
+        }
     }
     public Spatial getSpatial() {
         return this.playerSpatial;
@@ -1725,6 +1763,12 @@ class PlayerObject {
     }
     public void setPlayerClass(Class<? extends IPlayerClass> newClass) {
         this.pClass = newClass;
+    }
+    public int getHealth() {
+        return this.health;
+    }
+    public void setHealth(int newHealth) {
+        this.health = newHealth;
     }
 }
 //To Compile This, First Get It Into A Fat JAR Using ShadowJar, Then Do:
