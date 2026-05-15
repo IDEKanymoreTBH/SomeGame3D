@@ -72,6 +72,10 @@ import com.simsilica.lemur.GuiGlobals;
 
 import tonegod.gui.controls.windows.AlertBox;
 import tonegod.gui.core.Screen;
+
+import org.java_websocket.*;
+import org.java_websocket.handshake.*;
+import org.java_websocket.server.*;
 /**The Main App That Does Everything */
 public class App extends SimpleApplication implements ActionListener {
     /**Controls The Interactions A Player Can Do */
