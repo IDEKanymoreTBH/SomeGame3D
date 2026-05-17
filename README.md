@@ -127,3 +127,7 @@ Here, The Text Parameter Represents The Path To The Texture You Desire. This Mus
     - Added Some Orbs That Can Actually Be Thrown. They Don't Always Throw At Good Angles Though.
     - Footstep Plays Sometimes If You Walk For Long Enough. Took A While Cause No MP3 Loader :(
     - Oh Yeah WebSocket Stuff Is More Fleshed Out. Not Here Though.
+- v0.2.2b:
+    - Decided Against JInput Since It Is Old. May Use JME Joysticks.
+    - Implemented A Websockets API That Is Good.
+    - Have Basic Plans For A Level
