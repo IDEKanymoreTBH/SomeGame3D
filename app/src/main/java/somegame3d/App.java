@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
+import java.util.prefs.Preferences;
 
 import com.jme3.app.SimpleApplication;
 import com.jme3.asset.AssetManager;
@@ -55,6 +56,8 @@ import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.collision.shapes.BoxCollisionShape;
 import com.jme3.bullet.control.BetterCharacterControl;
 import com.jme3.bullet.control.RigidBodyControl;
+import com.jme3.bullet.collision.PhysicsCollisionEvent;
+import com.jme3.bullet.collision.PhysicsCollisionListener;
 import com.jme3.collision.CollisionResults;
 import com.jme3.scene.control.BillboardControl;
 import com.jme3.font.BitmapFont;
@@ -78,6 +81,7 @@ import org.java_websocket.handshake.*;
 import org.java_websocket.server.*;
 /**The Main App That Does Everything */
 public class App extends SimpleApplication implements ActionListener {
+    public static Preferences globalPrefs = Preferences.userNodeForPackage(App.class);
     /**Controls The Interactions A Player Can Do */
     public InteractionController intCont;
     //Global Values
@@ -130,6 +134,7 @@ public class App extends SimpleApplication implements ActionListener {
     public int developedProducts = 0;
     /**The Moving Platforms List */
     public static ArrayList<Geometry> movingPlatforms = new ArrayList<>();
+    public static OrbCollisionListener ocl;
     public static boolean isInStoryMode = false;
     public static boolean isCircleActive = false;
     public static boolean isAltCircleActive = false;
@@ -184,7 +189,7 @@ public class App extends SimpleApplication implements ActionListener {
     }
     @Override
     public void simpleInitApp() {
-        player = new PlayerObject(new Geometry("Box", new Box(0, 0, 0)), new BetterCharacterControl(0.5f * 2.8f, 1.8f * 2.8f, 80f), new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md"), CompSciPlayerClass.class);
+        player = new PlayerObject(new Geometry("Client.Player", new Box(0, 0, 0)), new BetterCharacterControl(0.5f * 2.8f, 1.8f * 2.8f, 80f), new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md"), CompSciPlayerClass.class);
         GuiGlobals.initialize(this);
         GuiGlobals.getInstance().setCursorEventsEnabled(false);
         screen = new Screen(this);
@@ -318,6 +323,8 @@ public class App extends SimpleApplication implements ActionListener {
         //Floor
         gen = new RoomGenerator(assetManager, rootNode, bulletAppState);
         //gen.generateStarterRoom();
+        //OrbCollisionListener
+        ocl = new OrbCollisionListener(bulletAppState, rootNode);
         //Wrap in Node
         playerNode = new Node("PlayerNode");
         playerNode.attachChild(player.getSpatial());
@@ -367,7 +374,7 @@ public class App extends SimpleApplication implements ActionListener {
         targetGeometry.addControl(testObjControl);
         bulletAppState.getPhysicsSpace().add(testObjControl);
         IATFileInterpreter iatfi = new IATFileInterpreter(IATFileInterpreter.IATFileInterpretMode.IATFILE_V1, rootNode, assetManager, bulletAppState);
-        iatfi.interpret("MapFiles/TestMap.iat");
+        iatfi.interpret("MapFiles/Level1.iat");
         flyCam.setEnabled(false);
         inputManager.setCursorVisible(true);
         assetManager.registerLoader(OGGLoader.class);
@@ -386,6 +393,8 @@ public class App extends SimpleApplication implements ActionListener {
             frameCount = 0;
             fpsTimer = 0;
         }
+        //Check All Orb Collisions
+        
         //Play Walking Sounds
         if(moveForward || moveBackwards || strafeLeft || strafeRight) {
             if(walkSoundTimer >= 30) {
@@ -1168,7 +1177,7 @@ class Utils {
         bulletAppState.getPhysicsSpace().add(blockPhysics);
     }
     public static void throwOrb(Vector3f direction, Vector3f position, Vector3f size, OrbID oid, AssetManager assetManager, Node rootNode, BulletAppState bas, float force) {
-        Geometry geo = new Geometry(UUID.randomUUID().toString(), new Box(size.x/2, size.y/2, size.z/2));
+        Geometry geo = new Geometry("Orb: " + UUID.randomUUID().toString(), new Box(size.x/2, size.y/2, size.z/2));
         geo.setLocalTranslation(position.add(direction));
         Material mat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
         mat.setTexture("DiffuseMap", assetManager.loadTexture(oid.getValue()));
@@ -1180,7 +1189,8 @@ class Utils {
         mat.getAdditionalRenderState().setFaceCullMode(FaceCullMode.Off);
         geo.setMaterial(mat);
         geo.setQueueBucket(RenderQueue.Bucket.Transparent);
-        RigidBodyControl rbc = new RigidBodyControl(new BoxCollisionShape(size.divide(2)), 1f);
+        RigidBodyControl rbc = new RigidBodyControl(new BoxCollisionShape(size.divide(2)), 2.5f);
+        rbc.setFriction(rbc.getFriction() * 4);
         geo.addControl(rbc);
         bas.getPhysicsSpace().add(rbc);
         rootNode.attachChild(geo);
@@ -1770,6 +1780,25 @@ class PlayerObject {
     }
     public void setHealth(int newHealth) {
         this.health = newHealth;
+    }
+}
+class OrbCollisionListener implements PhysicsCollisionListener {
+    private Node rootNode;
+    
+    public OrbCollisionListener(BulletAppState bulletAppState, Node rootNode) {
+        bulletAppState.getPhysicsSpace().addCollisionListener(this);
+        this.rootNode = rootNode;
+    }
+    @Override
+    public void collision(PhysicsCollisionEvent e) {
+        Spatial nodeA = e.getNodeA();
+        Spatial nodeB = e.getNodeB();
+        System.out.println("Collision Spatial A: " + nodeA.toString() + "; Collision Spatial B: " + nodeB.toString());
+        if(nodeA.getName().contains("Orb") && !nodeB.equals(App.player.getSpatial().getParent())) {
+            rootNode.detachChild(nodeA);
+        } else if(nodeB.getName().contains("Orb") && !nodeA.equals(App.player.getSpatial().getParent())) {
+            rootNode.detachChild(nodeB);
+        }
     }
 }
 //To Compile This, First Get It Into A Fat JAR Using ShadowJar, Then Do:
