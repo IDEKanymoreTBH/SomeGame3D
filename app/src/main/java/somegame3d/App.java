@@ -28,6 +28,7 @@ import com.jme3.light.SpotLight;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
 import com.jme3.scene.Node;
+import com.jme3.scene.SceneGraphVisitor;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.VertexBuffer;
 import com.jme3.scene.shape.Box;
@@ -134,6 +135,13 @@ public class App extends SimpleApplication implements ActionListener {
     public int developedProducts = 0;
     /**The Moving Platforms List */
     public static ArrayList<Geometry> movingPlatforms = new ArrayList<>();
+    public static ArrayList<Spatial> allSpatials = new ArrayList<>();
+    public static SceneGraphVisitor visitor = new SceneGraphVisitor() {
+        @Override
+        public void visit(Spatial spatial) {
+            allSpatials.add(spatial);
+        }
+    };
     public static OrbCollisionListener ocl;
     public static boolean isInStoryMode = false;
     public static boolean isCircleActive = false;
@@ -385,6 +393,9 @@ public class App extends SimpleApplication implements ActionListener {
     public void simpleUpdate(float tpf) {
         //Makes The Game Not Run Until The Menus Are Done
         if(isInMainMenu || isInSettings || isInSettingsKeyBinds || isInSettingsOptions || isInSettingsDebugOptions) return;
+        //DEBUG
+        //rootNode.depthFirstTraversal(visitor);
+        //Utils.enableWireframe(allSpatials);
         //Custom FPS Counter
         fpsTimer += tpf;
         frameCount++;
@@ -1229,6 +1240,17 @@ class Utils {
             audNode.play();
         }
     }
+    public static void enableWireframe(ArrayList<Spatial> allSpatials) {
+        for(Spatial s : allSpatials) {
+            if(s instanceof Geometry) {
+                Geometry g = ((Geometry)s);
+                g.getMaterial().getAdditionalRenderState().setWireframe(true);
+            } else if(s instanceof Node) {
+                Node n = ((Node)(s));
+                Utils.enableWireframe(new ArrayList<>(n.getChildren()));
+            }
+        }
+    }
 }
 class IATFileInterpreter {
     /**The Interpret Succeeded */
@@ -1798,6 +1820,8 @@ class OrbCollisionListener implements PhysicsCollisionListener {
             rootNode.detachChild(nodeA);
         } else if(nodeB.getName().contains("Orb") && !nodeA.equals(App.player.getSpatial().getParent())) {
             rootNode.detachChild(nodeB);
+        } else {
+            System.out.println(String.format("This Collision Did Not Work Because Node A Is: %s And Node B Is: %s", nodeA.toString(), nodeB.toString()));
         }
     }
 }
