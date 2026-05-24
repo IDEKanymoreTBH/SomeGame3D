@@ -407,7 +407,7 @@ public class App extends SimpleApplication implements ActionListener {
         //Check All Orb Collisions
         
         //Play Walking Sounds
-        if(moveForward || moveBackwards || strafeLeft || strafeRight) {
+        if((moveForward || moveBackwards || strafeLeft || strafeRight) && player.getControl().isOnGround()) {
             if(walkSoundTimer >= 30) {
                 Utils.playSound(rootNode, assetManager, "Sounds/footstep.ogg", false, false, 20, true, Optional.empty(), Optional.empty(), Optional.empty());
                 walkSoundTimer = 0;
