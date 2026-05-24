@@ -131,3 +131,7 @@ Here, The Text Parameter Represents The Path To The Texture You Desire. This Mus
     - Decided Against JInput Since It Is Old. May Use JME Joysticks.
     - Implemented A Websockets API That Is Good.
     - Have Basic Plans For A Level
+- v0.2.2c:
+    - VS Code Theme Changed. Very Bad :(
+    - Made Step Sound Not Play In Air
+    - Burnt Out
